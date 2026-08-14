@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: etontine-tchad
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn etontine.wsgi:application"
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: etontine-db
+          property: connectionString
+
+databases:
+  - name: etontine-db
+    plan: free
