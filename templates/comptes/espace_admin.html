@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titre %}Espace administrateur{% endblock %}
+{% block contenu %}
+<h2>Espace administrateur</h2>
+<p>Nombre de membres : {{ membres|length }}</p>
+<table style="width:100%; margin-top:1rem; border-collapse: collapse;">
+    <thead>
+        <tr style="text-align:left; border-bottom:2px solid #eee;">
+            <th style="padding:0.4rem;">Nom</th>
+            <th style="padding:0.4rem;">Téléphone</th>
+            <th style="padding:0.4rem;">Inscrit le</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for membre in membres %}
+        <tr style="border-bottom:1px solid #f0f0f0;">
+            <td style="padding:0.4rem;">{{ membre.first_name }} {{ membre.last_name }}</td>
+            <td style="padding:0.4rem;">{{ membre.telephone }}</td>
+            <td style="padding:0.4rem;">{{ membre.date_creation|date:"d/m/Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" style="padding:0.4rem;">Aucun membre pour l'instant.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

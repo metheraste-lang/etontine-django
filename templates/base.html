@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titre %}E-Tontine Tchad{% endblock %}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f4f1ea; color: #2b2118; }
+        header { background: #b3541e; color: #fff; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        header a { color: #fff; text-decoration: none; margin-left: 1rem; font-weight: 600; }
+        header .marque { font-size: 1.2rem; font-weight: 800; margin-left: 0; }
+        main { max-width: 480px; margin: 2rem auto; background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .messages { list-style: none; margin-bottom: 1rem; }
+        .messages li { background: #e7f3e8; color: #256029; padding: 0.6rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; }
+        input, button { width: 100%; padding: 0.7rem; margin-top: 0.5rem; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; }
+        button { background: #b3541e; color: #fff; border: none; font-weight: 700; cursor: pointer; margin-top: 1rem; }
+        button:hover { background: #8f4118; }
+        label { font-weight: 600; margin-top: 0.8rem; display: block; }
+        .erreur { color: #b3261e; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <span class="marque">E-Tontine Tchad</span>
+        <nav>
+            {% if user.is_authenticated %}
+                <a href="{% url 'tableau_bord' %}">Tableau de bord</a>
+                <a href="{% url 'liste_tontines' %}">Mes tontines</a>
+                {% if user.est_administrateur %}<a href="{% url 'espace_admin' %}">Admin</a>{% endif %}
+                <a href="{% url 'deconnexion' %}">Déconnexion</a>
+            {% else %}
+                <a href="{% url 'connexion' %}">Connexion</a>
+                <a href="{% url 'inscription' %}">Inscription</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        {% block contenu %}{% endblock %}
+    </main>
+</body>
+</html>

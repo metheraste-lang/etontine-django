@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titre %}Connexion — E-Tontine Tchad{% endblock %}
+{% block contenu %}
+<h2>Se connecter</h2>
+<form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for erreur in field.errors %}<div class="erreur">{{ erreur }}</div>{% endfor %}
+    {% endfor %}
+    <button type="submit">Se connecter</button>
+</form>
+<p style="margin-top:1rem;">Pas encore de compte ? <a href="{% url 'inscription' %}">Inscrivez-vous</a></p>
+{% endblock %}

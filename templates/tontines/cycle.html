@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block titre %}Cycle {{ cycle.numero }} — {{ tontine.nom }}{% endblock %}
+{% block contenu %}
+<h2>{{ tontine.nom }} — Cycle {{ cycle.numero }}</h2>
+<p>{{ cycle.date_debut|date:"d/m/Y" }} au {{ cycle.date_fin|date:"d/m/Y" }} — {{ cycle.get_statut_display }}</p>
+<p>Collecté : <strong>{{ cycle.total_collecte }} FCFA</strong> sur {{ tontine.cagnotte_par_cycle }} FCFA ({{ cycle.taux_collecte }}%)</p>
+{% if cycle.beneficiaire %}
+<p>Bénéficiaire de ce cycle : <strong>{{ cycle.beneficiaire.utilisateur.first_name|default:cycle.beneficiaire.utilisateur.username }}</strong></p>
+{% endif %}
+
+<h3 style="margin-top:1.5rem;">Cotisations</h3>
+<table style="width:100%; margin-top:0.5rem; border-collapse: collapse;">
+    <thead>
+        <tr style="text-align:left; border-bottom:2px solid #eee;">
+            <th style="padding:0.4rem;">Membre</th>
+            <th style="padding:0.4rem;">Montant</th>
+            <th style="padding:0.4rem;">Statut</th>
+            {% if peut_gerer %}<th style="padding:0.4rem;">Action</th>{% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for cot in cotisations %}
+        <tr style="border-bottom:1px solid #f0f0f0;">
+            <td style="padding:0.4rem;">{{ cot.adhesion.utilisateur.first_name|default:cot.adhesion.utilisateur.username }}</td>
+            <td style="padding:0.4rem;">{{ cot.montant }} FCFA</td>
+            <td style="padding:0.4rem;">{{ cot.get_statut_display }}</td>
+            {% if peut_gerer %}
+            <td style="padding:0.4rem;">
+                {% if cot.statut != 'payee' %}
+                <form method="post" style="display:flex; gap:0.3rem;">
+                    {% csrf_token %}
+                    <input type="hidden" name="cotisation_id" value="{{ cot.id }}">
+                    <select name="moyen_paiement" style="width:auto; margin:0;">
+                        {% for valeur, libelle in moyens %}
+                        <option value="{{ valeur }}">{{ libelle }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" name="reference_transaction" placeholder="Référence" style="width:auto; margin:0;">
+                    <button type="submit" style="width:auto; margin:0; padding:0.3rem 0.6rem;">Marquer payée</button>
+                </form>
+                {% else %}✅{% endif %}
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

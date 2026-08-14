@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titre %}{{ tontine.nom }}{% endblock %}
+{% block contenu %}
+<h2>{{ tontine.nom }}</h2>
+<p>{{ tontine.description }}</p>
+<p>Cotisation : <strong>{{ tontine.montant_cotisation }} FCFA</strong> ({{ tontine.get_frequence_display|lower }})</p>
+<p>Cagnotte par cycle : {{ tontine.cagnotte_par_cycle }} FCFA ({{ tontine.nombre_membres }} membres)</p>
+
+<h3 style="margin-top:1.5rem;">Membres et ordre de tirage</h3>
+<ol>
+    {% for m in membres %}
+    <li>{{ m.utilisateur.first_name|default:m.utilisateur.username }}</li>
+    {% endfor %}
+</ol>
+
+<h3 style="margin-top:1.5rem;">Cycles</h3>
+{% if user == tontine.createur or user.est_administrateur %}
+<p><a href="{% url 'creer_cycle' tontine.id %}">+ Créer un nouveau cycle</a></p>
+{% endif %}
+{% if cycles %}
+<ul style="list-style:none;">
+    {% for c in cycles %}
+    <li style="padding:0.5rem 0; border-bottom:1px solid #eee;">
+        <a href="{% url 'detail_cycle' c.id %}">Cycle {{ c.numero }}</a>
+        — {{ c.date_debut|date:"d/m/Y" }} au {{ c.date_fin|date:"d/m/Y" }}
+        — {{ c.get_statut_display }} ({{ c.taux_collecte }}% collecté)
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Aucun cycle n'a encore été créé (à faire depuis l'admin Django pour l'instant).</p>
+{% endif %}
+{% endblock %}

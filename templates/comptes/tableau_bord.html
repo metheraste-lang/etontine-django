@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block titre %}Tableau de bord{% endblock %}
+{% block contenu %}
+<h2>Bonjour, {{ user.first_name|default:user.username }} 👋</h2>
+<p>Téléphone : {{ user.telephone }}</p>
+<p>Rôle : {{ user.get_role_display }}</p>
+<p style="margin-top:1.5rem;"><a href="{% url 'liste_tontines' %}">→ Voir mes tontines</a></p>
+{% endblock %}
