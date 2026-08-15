@@ -125,7 +125,7 @@
     <h3>👥 Membres</h3>
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Inscrit le</th></tr></thead>
+        <thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Statut</th><th>Actions</th></tr></thead>
         <tbody>
         {% for m in membres %}
         <tr>
@@ -135,10 +135,41 @@
                 {% if m.est_administrateur %}<span class="badge badge-amber">Admin</span>
                 {% else %}<span class="badge badge-blue">Membre</span>{% endif %}
             </td>
-            <td>{{ m.date_creation|date:"d/m/Y" }}</td>
+            <td>
+                {% if m.is_active %}<span class="badge badge-green">Actif</span>
+                {% else %}<span class="badge badge-red">Désactivé</span>{% endif %}
+            </td>
+            <td>
+                {% if m != user %}
+                <div style="display:flex; gap:0.3rem; flex-wrap:wrap;">
+                    <form method="post" action="{% url 'basculer_role' m.id %}" style="margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-outline" style="padding:0.35rem 0.6rem; font-size:0.72rem;">
+                            {% if m.est_administrateur %}Rétrograder{% else %}Promouvoir admin{% endif %}
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'basculer_actif' m.id %}" style="margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-amber" style="padding:0.35rem 0.6rem; font-size:0.72rem;">
+                            {% if m.is_active %}Désactiver{% else %}Réactiver{% endif %}
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'reinitialiser_mot_de_passe' m.id %}" style="margin:0;" onsubmit="return confirm('Générer un nouveau mot de passe pour {{ m }} ?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-outline" style="padding:0.35rem 0.6rem; font-size:0.72rem;">Réinit. mdp</button>
+                    </form>
+                    <form method="post" action="{% url 'supprimer_utilisateur' m.id %}" style="margin:0;" onsubmit="return confirm('Supprimer définitivement le compte de {{ m }} ? Cette action est irréversible.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-red" style="padding:0.35rem 0.6rem; font-size:0.72rem;">Supprimer</button>
+                    </form>
+                </div>
+                {% else %}
+                <span class="muted" style="font-size:0.78rem;">Vous</span>
+                {% endif %}
+            </td>
         </tr>
         {% empty %}
-        <tr><td colspan="4" class="muted">Aucun membre pour l'instant.</td></tr>
+        <tr><td colspan="5" class="muted">Aucun membre pour l'instant.</td></tr>
         {% endfor %}
         </tbody>
     </table>

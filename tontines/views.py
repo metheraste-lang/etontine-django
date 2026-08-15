@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
-from .models import Tontine, Adhesion, Cycle, Cotisation, Depot, Retrait, MOYENS_MOBILE_MONEY, FRAIS_RETRAIT_POURCENT
+from .models import Tontine, Adhesion, Cycle, Cotisation, Depot, Retrait, MOYENS_MOBILE_MONEY, FRAIS_RETRAIT_POURCENT, NUMEROS_DEPOT
 
 
 def _peut_gerer_tontine(user, tontine):
@@ -246,7 +246,10 @@ def deposer(request):
             )
             return redirect('tableau_bord')
 
-    return render(request, 'tontines/deposer.html', {'moyens': MOYENS_MOBILE_MONEY})
+    return render(request, 'tontines/deposer.html', {
+        'moyens': MOYENS_MOBILE_MONEY,
+        'numeros_depot': NUMEROS_DEPOT,
+    })
 
 
 @login_required

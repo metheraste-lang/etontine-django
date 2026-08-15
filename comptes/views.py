@@ -1,7 +1,7 @@
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import LoginView, LogoutView
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .forms import InscriptionForm
 
@@ -111,3 +111,90 @@ def espace_admin(request):
         'depots_en_attente': depots_en_attente,
         'retraits_en_attente': retraits_en_attente,
     })
+
+
+# --------------------------------------------------------------------------
+# Gestion des comptes utilisateurs (réservé aux administrateurs)
+# --------------------------------------------------------------------------
+
+@user_passes_test(est_admin, login_url='connexion')
+def supprimer_utilisateur(request, user_id):
+    from .models import Utilisateur
+
+    utilisateur = get_object_or_404(Utilisateur, id=user_id)
+
+    if request.method != 'POST':
+        return redirect('espace_admin')
+
+    if utilisateur == request.user:
+        messages.error(request, "Vous ne pouvez pas supprimer votre propre compte.")
+        return redirect('espace_admin')
+
+    nom = str(utilisateur)
+    utilisateur.delete()
+    messages.success(request, f"Le compte de {nom} a été supprimé.")
+    return redirect('espace_admin')
+
+
+@user_passes_test(est_admin, login_url='connexion')
+def reinitialiser_mot_de_passe(request, user_id):
+    import secrets
+    from .models import Utilisateur
+
+    utilisateur = get_object_or_404(Utilisateur, id=user_id)
+
+    if request.method != 'POST':
+        return redirect('espace_admin')
+
+    nouveau_mot_de_passe = secrets.token_urlsafe(6)
+    utilisateur.set_password(nouveau_mot_de_passe)
+    utilisateur.save()
+    messages.success(
+        request,
+        f"Nouveau mot de passe pour {utilisateur} : {nouveau_mot_de_passe} "
+        "— transmettez-le en sécurité, il ne sera plus jamais réaffiché."
+    )
+    return redirect('espace_admin')
+
+
+@user_passes_test(est_admin, login_url='connexion')
+def basculer_role(request, user_id):
+    from .models import Utilisateur
+
+    utilisateur = get_object_or_404(Utilisateur, id=user_id)
+
+    if request.method != 'POST':
+        return redirect('espace_admin')
+
+    if utilisateur == request.user:
+        messages.error(request, "Vous ne pouvez pas modifier votre propre rôle.")
+        return redirect('espace_admin')
+
+    if utilisateur.role == Utilisateur.ROLE_ADMIN:
+        utilisateur.role = Utilisateur.ROLE_MEMBRE
+        messages.success(request, f"{utilisateur} est maintenant un membre simple.")
+    else:
+        utilisateur.role = Utilisateur.ROLE_ADMIN
+        messages.success(request, f"{utilisateur} est maintenant administrateur.")
+    utilisateur.save()
+    return redirect('espace_admin')
+
+
+@user_passes_test(est_admin, login_url='connexion')
+def basculer_actif(request, user_id):
+    from .models import Utilisateur
+
+    utilisateur = get_object_or_404(Utilisateur, id=user_id)
+
+    if request.method != 'POST':
+        return redirect('espace_admin')
+
+    if utilisateur == request.user:
+        messages.error(request, "Vous ne pouvez pas désactiver votre propre compte.")
+        return redirect('espace_admin')
+
+    utilisateur.is_active = not utilisateur.is_active
+    utilisateur.save()
+    etat = "réactivé" if utilisateur.is_active else "désactivé"
+    messages.success(request, f"Le compte de {utilisateur} a été {etat}.")
+    return redirect('espace_admin')

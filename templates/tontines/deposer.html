@@ -3,19 +3,31 @@
 {% block contenu %}
 <div class="card">
     <h2>💳 Effectuer un dépôt</h2>
-    <p class="muted">Envoyez l'argent depuis votre mobile money, puis renseignez la référence de la transaction ci-dessous. Un administrateur validera votre dépôt avant qu'il n'apparaisse sur votre solde.</p>
+    <p class="muted">Envoyez l'argent au numéro correspondant, puis renseignez la référence de la transaction ci-dessous. Un administrateur validera votre dépôt avant qu'il n'apparaisse sur votre solde.</p>
 
-    <form method="post">
+    <div class="card" style="background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.35); margin-bottom:0;">
+        <p style="margin:0 0 0.6rem; font-weight:700; color:#86efac;">📱 Numéros de réception des dépôts</p>
+        {% for valeur, numero in numeros_depot.items %}
+        <p class="muted" style="margin:0.3rem 0;">
+            <strong style="color: var(--text);">{% if valeur == 'airtel_money' %}Airtel Money{% elif valeur == 'moov_money' %}Moov Money{% else %}{{ valeur }}{% endif %} :</strong>
+            <span style="font-family: monospace; font-size:1.05rem; color: var(--green); letter-spacing:0.03em;">{{ numero }}</span>
+        </p>
+        {% endfor %}
+        <p class="muted" style="font-size:0.78rem; margin-top:0.5rem;">Les autres moyens de paiement seront bientôt disponibles.</p>
+    </div>
+
+    <form method="post" style="margin-top:1.2rem;">
         {% csrf_token %}
         <label for="montant">Montant (FCFA)</label>
         <input type="number" step="0.01" min="1" name="montant" id="montant" required>
 
-        <label for="moyen_paiement">Moyen de paiement</label>
-        <select name="moyen_paiement" id="moyen_paiement" required>
+        <label for="moyen_paiement">Moyen de paiement utilisé</label>
+        <select name="moyen_paiement" id="moyen_paiement" required onchange="afficherNumero()">
             {% for valeur, libelle in moyens %}
             <option value="{{ valeur }}">{{ libelle }}</option>
             {% endfor %}
         </select>
+        <div id="numero-choisi" class="muted" style="margin-top:0.5rem; font-size:0.9rem;"></div>
 
         <label for="reference_transaction">Référence de la transaction</label>
         <input type="text" name="reference_transaction" id="reference_transaction" placeholder="Ex : MP240814.1234.A56789" required>
@@ -23,4 +35,22 @@
         <div class="btn-row"><button type="submit" class="btn-green">Envoyer la demande de dépôt</button></div>
     </form>
 </div>
+
+<script>
+    const numeros = {
+        {% for valeur, numero in numeros_depot.items %}
+        "{{ valeur }}": "{{ numero }}",
+        {% endfor %}
+    };
+    function afficherNumero() {
+        const moyen = document.getElementById('moyen_paiement').value;
+        const zone = document.getElementById('numero-choisi');
+        if (numeros[moyen]) {
+            zone.innerHTML = '👉 Envoyez au <strong style="color:#86efac;">' + numeros[moyen] + '</strong>';
+        } else {
+            zone.innerHTML = 'Ce moyen de paiement n\'est pas encore disponible pour le dépôt.';
+        }
+    }
+    document.addEventListener('DOMContentLoaded', afficherNumero);
+</script>
 {% endblock %}

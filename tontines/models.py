@@ -23,6 +23,12 @@ MOYENS_MOBILE_MONEY = [
 # Pourcentage prélevé par la plateforme sur chaque retrait.
 FRAIS_RETRAIT_POURCENT = 8
 
+# Numéros de réception pour les dépôts, affichés directement à l'utilisateur.
+NUMEROS_DEPOT = {
+    MOYEN_AIRTEL: '86 75 25 75',
+    MOYEN_MOOV: '98 58 75 97',
+}
+
 
 class Tontine(models.Model):
     """Une caisse de tontine gérée par un ou plusieurs administrateurs."""
