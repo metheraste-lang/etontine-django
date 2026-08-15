@@ -1,26 +1,108 @@
 {% extends "base.html" %}
 {% block titre %}Espace administrateur{% endblock %}
 {% block contenu %}
-<h2>Espace administrateur</h2>
-<p>Nombre de membres : {{ membres|length }}</p>
-<table style="width:100%; margin-top:1rem; border-collapse: collapse;">
-    <thead>
-        <tr style="text-align:left; border-bottom:2px solid #eee;">
-            <th style="padding:0.4rem;">Nom</th>
-            <th style="padding:0.4rem;">Téléphone</th>
-            <th style="padding:0.4rem;">Inscrit le</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for membre in membres %}
-        <tr style="border-bottom:1px solid #f0f0f0;">
-            <td style="padding:0.4rem;">{{ membre.first_name }} {{ membre.last_name }}</td>
-            <td style="padding:0.4rem;">{{ membre.telephone }}</td>
-            <td style="padding:0.4rem;">{{ membre.date_creation|date:"d/m/Y" }}</td>
+
+<div class="card">
+    <h2>⚙️ Espace administrateur</h2>
+    <p class="muted">Vue d'ensemble de toutes les tontines et de tous les membres de la plateforme.</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Membres inscrits</div>
+        <div class="value">{{ nombre_membres }}</div>
+    </div>
+    <div class="stat-card purple">
+        <div class="label">Tontines actives</div>
+        <div class="value">{{ nombre_tontines_actives }} / {{ nombre_tontines }}</div>
+    </div>
+    <div class="stat-card green">
+        <div class="label">Total collecté</div>
+        <div class="value">{{ total_collecte }} F</div>
+    </div>
+    <div class="stat-card amber">
+        <div class="label">Cotisations en attente</div>
+        <div class="value">{{ cotisations_en_attente }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🧾 Tontines de la plateforme</h3>
+    {% if tontines %}
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Nom</th><th>Créateur</th><th>Membres</th><th>Cotisation</th><th>Statut</th></tr></thead>
+        <tbody>
+        {% for t in tontines %}
+            <tr>
+                <td><a href="{% url 'detail_tontine' t.id %}">{{ t.nom }}</a></td>
+                <td>{{ t.createur.first_name|default:t.createur.username }}</td>
+                <td>{{ t.nombre_membres }}</td>
+                <td>{{ t.montant_cotisation }} F</td>
+                <td>
+                    {% if t.statut == 'active' %}<span class="badge badge-green">Active</span>
+                    {% else %}<span class="badge badge-red">Fermée</span>{% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted">Aucune tontine créée pour l'instant.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>👥 Membres</h3>
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Inscrit le</th></tr></thead>
+        <tbody>
+        {% for m in membres %}
+        <tr>
+            <td>{{ m.first_name }} {{ m.last_name }}</td>
+            <td>{{ m.telephone }}</td>
+            <td>
+                {% if m.est_administrateur %}<span class="badge badge-amber">Admin</span>
+                {% else %}<span class="badge badge-blue">Membre</span>{% endif %}
+            </td>
+            <td>{{ m.date_creation|date:"d/m/Y" }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="3" style="padding:0.4rem;">Aucun membre pour l'instant.</td></tr>
+        <tr><td colspan="4" class="muted">Aucun membre pour l'instant.</td></tr>
         {% endfor %}
-    </tbody>
-</table>
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📜 Journal global des cotisations</h3>
+    {% if journal_global %}
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Membre</th><th>Tontine</th><th>Montant</th><th>Moyen</th><th>Statut</th></tr></thead>
+        <tbody>
+        {% for cot in journal_global %}
+            <tr>
+                <td>{{ cot.adhesion.utilisateur.first_name|default:cot.adhesion.utilisateur.username }}</td>
+                <td>{{ cot.cycle.tontine.nom }} — Cycle {{ cot.cycle.numero }}</td>
+                <td>{{ cot.montant }} F</td>
+                <td>{{ cot.get_moyen_paiement_display }}</td>
+                <td>
+                    {% if cot.statut == 'payee' %}<span class="badge badge-green">Payée</span>
+                    {% elif cot.statut == 'en_retard' %}<span class="badge badge-red">En retard</span>
+                    {% else %}<span class="badge badge-amber">En attente</span>{% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted">Aucune cotisation enregistrée pour l'instant.</p>
+    {% endif %}
+</div>
+
 {% endblock %}

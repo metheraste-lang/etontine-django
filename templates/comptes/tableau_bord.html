@@ -1,8 +1,80 @@
 {% extends "base.html" %}
 {% block titre %}Tableau de bord{% endblock %}
 {% block contenu %}
-<h2>Bonjour, {{ user.first_name|default:user.username }} 👋</h2>
-<p>Téléphone : {{ user.telephone }}</p>
-<p>Rôle : {{ user.get_role_display }}</p>
-<p style="margin-top:1.5rem;"><a href="{% url 'liste_tontines' %}">→ Voir mes tontines</a></p>
+
+<div class="card">
+    <h2>{{ user.first_name|default:user.username }} 🚀</h2>
+    <p class="muted">Statut : Connecté en sécurité. Rôle : {{ user.get_role_display }}</p>
+    <div class="btn-row">
+        <a href="{% url 'liste_tontines' %}" class="btn">📂 Mes tontines</a>
+        <a href="{% url 'creer_tontine' %}" class="btn btn-green">🛠️ Créer / Rejoindre</a>
+        {% if user.est_administrateur %}<a href="{% url 'espace_admin' %}" class="btn btn-amber">⚙️ Espace admin</a>{% endif %}
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card green">
+        <div class="label">Total cotisé (payé)</div>
+        <div class="value">{{ total_cotise }} F</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Tontines actives</div>
+        <div class="value">{{ nombre_tontines }}</div>
+    </div>
+    <div class="stat-card amber">
+        <div class="label">Cotisations en attente</div>
+        <div class="value">{{ en_attente }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📂 Vos tontines actives</h3>
+    {% if adhesions %}
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Tontine</th><th>Cotisation</th><th>Fréquence</th><th></th></tr></thead>
+        <tbody>
+        {% for adh in adhesions %}
+            <tr>
+                <td>{{ adh.tontine.nom }}</td>
+                <td>{{ adh.tontine.montant_cotisation }} F</td>
+                <td>{{ adh.tontine.get_frequence_display }}</td>
+                <td><a href="{% url 'detail_tontine' adh.tontine.id %}">Voir →</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted">Aucune tontine active. <a href="{% url 'liste_tontines' %}">Rejoignez-en une</a>.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>📜 Journal de vos flux financiers</h3>
+    {% if journal %}
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Tontine</th><th>Cycle</th><th>Montant</th><th>Statut</th></tr></thead>
+        <tbody>
+        {% for cot in journal %}
+            <tr>
+                <td>{{ cot.cycle.tontine.nom }}</td>
+                <td>Cycle {{ cot.cycle.numero }}</td>
+                <td>{{ cot.montant }} F</td>
+                <td>
+                    {% if cot.statut == 'payee' %}<span class="badge badge-green">Payée</span>
+                    {% elif cot.statut == 'en_retard' %}<span class="badge badge-red">En retard</span>
+                    {% else %}<span class="badge badge-amber">En attente</span>{% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted">Aucune transaction pour l'instant.</p>
+    {% endif %}
+</div>
+
 {% endblock %}

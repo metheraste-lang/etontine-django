@@ -5,33 +5,185 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block titre %}E-Tontine Tchad{% endblock %}</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: #f4f1ea; color: #2b2118; }
-        header { background: #b3541e; color: #fff; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        header a { color: #fff; text-decoration: none; margin-left: 1rem; font-weight: 600; }
-        header .marque { font-size: 1.2rem; font-weight: 800; margin-left: 0; }
-        main { max-width: 480px; margin: 2rem auto; background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-        .messages { list-style: none; margin-bottom: 1rem; }
-        .messages li { background: #e7f3e8; color: #256029; padding: 0.6rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; }
-        input, button { width: 100%; padding: 0.7rem; margin-top: 0.5rem; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; }
-        button { background: #b3541e; color: #fff; border: none; font-weight: 700; cursor: pointer; margin-top: 1rem; }
-        button:hover { background: #8f4118; }
-        label { font-weight: 600; margin-top: 0.8rem; display: block; }
-        .erreur { color: #b3261e; font-size: 0.9rem; }
+        :root {
+            --bg: #0b1220;
+            --bg-alt: #0f1729;
+            --card: #131c31;
+            --card-border: #1f2c47;
+            --text: #e7ecf5;
+            --text-muted: #8a94ab;
+            --green: #22c55e;
+            --blue: #3b82f6;
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --purple: #a855f7;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+        a { color: var(--blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        header {
+            background: var(--bg-alt);
+            border-bottom: 1px solid var(--card-border);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .marque {
+            font-size: 1.25rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .marque .tchad { color: var(--green); }
+        nav { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        nav a {
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.92rem;
+            padding: 0.4rem 0.2rem;
+        }
+        nav a:hover { color: var(--blue); text-decoration: none; }
+        .btn-deco {
+            background: var(--red);
+            color: #fff !important;
+            padding: 0.55rem 1.1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .btn-deco:hover { background: #dc2626; text-decoration: none; }
+
+        main {
+            max-width: 720px;
+            margin: 1.5rem auto;
+            padding: 0 1rem 2rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .messages { list-style: none; padding: 0; margin: 0 0 1rem; }
+        .messages li {
+            background: rgba(34,197,94,0.12);
+            border: 1px solid rgba(34,197,94,0.35);
+            color: #86efac;
+            padding: 0.7rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        label { font-weight: 600; margin-top: 0.9rem; display: block; font-size: 0.9rem; color: var(--text-muted); }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.7rem 0.8rem;
+            margin-top: 0.4rem;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            background: var(--bg-alt);
+            color: var(--text);
+            font-size: 1rem;
+        }
+        input:focus, select:focus, textarea:focus { outline: 2px solid var(--blue); }
+
+        button, .btn {
+            display: inline-block;
+            border: none;
+            border-radius: 9px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            padding: 0.7rem 1.1rem;
+            cursor: pointer;
+            color: #fff;
+            background: var(--blue);
+            text-align: center;
+        }
+        button:hover, .btn:hover { filter: brightness(1.1); text-decoration: none; }
+        .btn-green { background: var(--green); }
+        .btn-amber { background: var(--amber); }
+        .btn-red { background: var(--red); }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text);
+        }
+        .btn-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.8rem; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.9rem;
+            margin-bottom: 1.2rem;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-left: 4px solid var(--blue);
+            border-radius: 10px;
+            padding: 1rem 1.1rem;
+        }
+        .stat-card.green { border-left-color: var(--green); }
+        .stat-card.amber { border-left-color: var(--amber); }
+        .stat-card.purple { border-left-color: var(--purple); }
+        .stat-card .label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .stat-card .value { font-size: 1.5rem; font-weight: 800; margin-top: 0.3rem; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        th { text-align: left; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--card-border); }
+        td { padding: 0.6rem 0.4rem; border-bottom: 1px solid var(--card-border); }
+        .table-wrap { overflow-x: auto; }
+
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+        .badge-green { background: rgba(34,197,94,0.15); color: #86efac; }
+        .badge-amber { background: rgba(245,158,11,0.15); color: #fcd34d; }
+        .badge-red { background: rgba(239,68,68,0.15); color: #fca5a5; }
+        .badge-blue { background: rgba(59,130,246,0.15); color: #93c5fd; }
+
+        h2 { margin-top: 0; font-size: 1.3rem; }
+        h3 { font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 0.8rem; }
+        .muted { color: var(--text-muted); font-size: 0.88rem; }
+        .erreur { color: #fca5a5; font-size: 0.85rem; margin-top: 0.2rem; }
+        .progress-bar { background: var(--bg-alt); border-radius: 999px; height: 10px; overflow: hidden; margin-top: 0.5rem; }
+        .progress-fill { background: linear-gradient(90deg, var(--green), var(--blue)); height: 100%; }
+        .tab-links { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+        .tab-links a { background: var(--card); border: 1px solid var(--card-border); padding: 0.6rem 1rem; border-radius: 9px; color: var(--text); font-weight: 600; font-size: 0.85rem; }
+        .tab-links a.actif { background: var(--blue); border-color: var(--blue); color: #fff; }
     </style>
 </head>
 <body>
     <header>
-        <span class="marque">E-Tontine Tchad</span>
+        <span class="marque">🇹🇩 E-TONTINE <span class="tchad">TCHAD</span></span>
         <nav>
             {% if user.is_authenticated %}
                 <a href="{% url 'tableau_bord' %}">Tableau de bord</a>
                 <a href="{% url 'liste_tontines' %}">Mes tontines</a>
                 {% if user.est_administrateur %}<a href="{% url 'espace_admin' %}">Admin</a>{% endif %}
-                <a href="{% url 'deconnexion' %}">Déconnexion</a>
+                <a href="{% url 'deconnexion' %}" class="btn-deco">Déconnexion</a>
             {% else %}
                 <a href="{% url 'connexion' %}">Connexion</a>
-                <a href="{% url 'inscription' %}">Inscription</a>
+                <a href="{% url 'inscription' %}" class="btn">Inscription</a>
             {% endif %}
         </nav>
     </header>

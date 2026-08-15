@@ -1,21 +1,23 @@
 {% extends "base.html" %}
 {% block titre %}Nouveau cycle — {{ tontine.nom }}{% endblock %}
 {% block contenu %}
-<h2>Nouveau cycle — {{ tontine.nom }}</h2>
-<p>Ce sera le <strong>cycle n°{{ prochain_numero }}</strong>.</p>
-<p>Bénéficiaire désigné automatiquement (selon l'ordre de tirage) :
-    <strong>{{ prochain_beneficiaire.utilisateur.first_name|default:prochain_beneficiaire.utilisateur.username }}</strong>
-</p>
-
-<form method="post" style="margin-top:1rem;">
-    {% csrf_token %}
-    <label for="date_debut">Date de début du cycle</label>
-    <input type="date" name="date_debut" id="date_debut" value="{{ aujourdhui }}" required>
-    <p style="font-size:0.85rem; color:#666; margin-top:0.4rem;">
-        La date de fin sera calculée automatiquement selon la fréquence de la tontine
-        ({{ tontine.get_frequence_display|lower }}). Une ligne de cotisation "en attente"
-        sera créée pour chacun des {{ tontine.nombre_membres }} membres actifs.
+<div class="card">
+    <h2>🔄 Nouveau cycle — {{ tontine.nom }}</h2>
+    <p class="muted">Ce sera le <strong>cycle n°{{ prochain_numero }}</strong>.</p>
+    <p class="muted">Bénéficiaire désigné automatiquement :
+        <strong style="color: var(--text);">{{ prochain_beneficiaire.utilisateur.first_name|default:prochain_beneficiaire.utilisateur.username }}</strong>
     </p>
-    <button type="submit">Créer le cycle</button>
-</form>
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="date_debut">Date de début du cycle</label>
+        <input type="date" name="date_debut" id="date_debut" value="{{ aujourdhui }}" required>
+        <p class="muted" style="font-size:0.8rem; margin-top:0.6rem;">
+            La date de fin sera calculée automatiquement selon la fréquence de la tontine
+            ({{ tontine.get_frequence_display|lower }}). Une ligne de cotisation "en attente"
+            sera créée pour chacun des {{ tontine.nombre_membres }} membres actifs.
+        </p>
+        <div class="btn-row"><button type="submit" class="btn-green">Créer le cycle</button></div>
+    </form>
+</div>
 {% endblock %}

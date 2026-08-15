@@ -1,15 +1,17 @@
 {% extends "base.html" %}
 {% block titre %}Inscription — E-Tontine Tchad{% endblock %}
 {% block contenu %}
-<h2>Créer un compte</h2>
-<form method="post">
-    {% csrf_token %}
-    {% for field in form %}
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {% for erreur in field.errors %}<div class="erreur">{{ erreur }}</div>{% endfor %}
-    {% endfor %}
-    <button type="submit">S'inscrire</button>
-</form>
-<p style="margin-top:1rem;">Déjà inscrit ? <a href="{% url 'connexion' %}">Connectez-vous</a></p>
+<div class="card">
+    <h2>📝 Créer un compte</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for erreur in field.errors %}<div class="erreur">{{ erreur }}</div>{% endfor %}
+        {% endfor %}
+        <div class="btn-row"><button type="submit" class="btn-green">S'inscrire</button></div>
+    </form>
+    <p class="muted" style="margin-top:1rem;">Déjà inscrit ? <a href="{% url 'connexion' %}">Connectez-vous</a></p>
+</div>
 {% endblock %}
