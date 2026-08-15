@@ -180,7 +180,10 @@
                 <a href="{% url 'tableau_bord' %}">Tableau de bord</a>
                 <a href="{% url 'liste_tontines' %}">Mes tontines</a>
                 {% if user.est_administrateur %}<a href="{% url 'espace_admin' %}">Admin</a>{% endif %}
-                <a href="{% url 'deconnexion' %}" class="btn-deco">Déconnexion</a>
+                <form method="post" action="{% url 'deconnexion' %}" style="margin:0; display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-deco" style="border:none;">Déconnexion</button>
+                </form>
             {% else %}
                 <a href="{% url 'connexion' %}">Connexion</a>
                 <a href="{% url 'inscription' %}" class="btn">Inscription</a>
