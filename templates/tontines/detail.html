@@ -3,8 +3,13 @@
 {% block contenu %}
 
 <div class="card">
-    <h2>{{ tontine.nom }}</h2>
+    <h2>{{ tontine.nom }}
+        {% if tontine.est_individuelle %}<span class="badge badge-blue">Individuelle</span>{% else %}<span class="badge badge-green">Collective</span>{% endif %}
+    </h2>
     <p class="muted">{{ tontine.description }}</p>
+    {% if not tontine.est_individuelle %}
+    <p class="muted">Code d'invitation à partager : <code style="font-size:1rem; color: var(--text);">{{ tontine.code_invitation }}</code></p>
+    {% endif %}
 </div>
 
 <div class="stats-grid">

@@ -3,7 +3,21 @@
 {% block contenu %}
 <div class="card">
     <h2>📂 Mes tontines</h2>
-    <a href="{% url 'creer_tontine' %}" class="btn btn-green">+ Créer une nouvelle tontine</a>
+    <div class="btn-row">
+        <a href="{% url 'creer_tontine' %}" class="btn btn-green">+ Créer une nouvelle tontine</a>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🔑 Rejoindre avec un code d'invitation</h3>
+    <form method="post" action="{% url 'rejoindre_par_code' %}" style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:flex-end;">
+        {% csrf_token %}
+        <div style="flex:1; min-width:160px;">
+            <label for="code">Code de la tontine</label>
+            <input type="text" name="code" id="code" placeholder="Ex : A1B2C3" style="text-transform:uppercase;" required>
+        </div>
+        <button type="submit" style="height:44px;">Rejoindre</button>
+    </form>
 </div>
 
 <div class="card">
@@ -11,13 +25,15 @@
     {% if mes_tontines %}
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Nom</th><th>Cotisation</th><th>Membres</th><th></th></tr></thead>
+        <thead><tr><th>Nom</th><th>Type</th><th>Cotisation</th><th>Membres</th><th>Code</th><th></th></tr></thead>
         <tbody>
         {% for t in mes_tontines %}
         <tr>
             <td>{{ t.nom }}</td>
+            <td>{% if t.est_individuelle %}<span class="badge badge-blue">Individuelle</span>{% else %}<span class="badge badge-green">Collective</span>{% endif %}</td>
             <td>{{ t.montant_cotisation }} F / {{ t.get_frequence_display|lower }}</td>
             <td>{{ t.nombre_membres }}</td>
+            <td>{% if not t.est_individuelle %}<code>{{ t.code_invitation }}</code>{% else %}—{% endif %}</td>
             <td><a href="{% url 'detail_tontine' t.id %}">Voir →</a></td>
         </tr>
         {% endfor %}
@@ -28,29 +44,4 @@
     <p class="muted">Vous n'êtes membre d'aucune tontine pour l'instant.</p>
     {% endif %}
 </div>
-
-{% if autres_tontines %}
-<div class="card">
-    <h3>Tontines disponibles</h3>
-    <div class="table-wrap">
-    <table>
-        <thead><tr><th>Nom</th><th>Cotisation</th><th></th></tr></thead>
-        <tbody>
-        {% for t in autres_tontines %}
-        <tr>
-            <td>{{ t.nom }}</td>
-            <td>{{ t.montant_cotisation }} F / {{ t.get_frequence_display|lower }}</td>
-            <td>
-                <form method="post" action="{% url 'rejoindre_tontine' t.id %}" style="margin:0;">
-                    {% csrf_token %}
-                    <button type="submit" style="padding:0.4rem 0.8rem; font-size:0.8rem;">Rejoindre</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    </div>
-</div>
-{% endif %}
 {% endblock %}

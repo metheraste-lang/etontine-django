@@ -5,21 +5,24 @@
 <div class="card">
     <h2>{{ user.first_name|default:user.username }} 🚀</h2>
     <p class="muted">Statut : Connecté en sécurité. Rôle : {{ user.get_role_display }}</p>
+    <p style="font-size:1.6rem; font-weight:800; margin:0.6rem 0 0;">{{ user.solde }} F <span class="muted" style="font-size:0.8rem; font-weight:600;">de solde disponible</span></p>
     <div class="btn-row">
+        <a href="{% url 'deposer' %}" class="btn btn-green">💳 Dépôt</a>
+        <a href="{% url 'retirer' %}" class="btn btn-amber">📤 Retrait</a>
         <a href="{% url 'liste_tontines' %}" class="btn">📂 Mes tontines</a>
-        <a href="{% url 'creer_tontine' %}" class="btn btn-green">🛠️ Créer / Rejoindre</a>
-        {% if user.est_administrateur %}<a href="{% url 'espace_admin' %}" class="btn btn-amber">⚙️ Espace admin</a>{% endif %}
+        <a href="{% url 'creer_tontine' %}" class="btn btn-outline">🛠️ Créer / Rejoindre</a>
+        {% if user.est_administrateur %}<a href="{% url 'espace_admin' %}" class="btn btn-outline">⚙️ Espace admin</a>{% endif %}
     </div>
 </div>
 
 <div class="stats-grid">
     <div class="stat-card green">
-        <div class="label">Total cotisé (payé)</div>
-        <div class="value">{{ total_cotise }} F</div>
+        <div class="label">Tontines collectives</div>
+        <div class="value">{{ montant_collectives }} F</div>
     </div>
     <div class="stat-card">
-        <div class="label">Tontines actives</div>
-        <div class="value">{{ nombre_tontines }}</div>
+        <div class="label">Tontines individuelles</div>
+        <div class="value">{{ montant_individuelles }} F</div>
     </div>
     <div class="stat-card amber">
         <div class="label">Cotisations en attente</div>

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Tontine, Adhesion, Cycle, Cotisation
+from .models import Tontine, Adhesion, Cycle, Cotisation, Depot, Retrait
 
 
 class AdhesionInline(admin.TabularInline):
@@ -9,9 +9,9 @@ class AdhesionInline(admin.TabularInline):
 
 @admin.register(Tontine)
 class TontineAdmin(admin.ModelAdmin):
-    list_display = ['nom', 'montant_cotisation', 'frequence', 'statut', 'nombre_membres', 'createur']
-    list_filter = ['statut', 'frequence']
-    search_fields = ['nom']
+    list_display = ['nom', 'type_tontine', 'code_invitation', 'montant_cotisation', 'frequence', 'statut', 'nombre_membres', 'createur']
+    list_filter = ['statut', 'frequence', 'type_tontine']
+    search_fields = ['nom', 'code_invitation']
     inlines = [AdhesionInline]
 
 
@@ -32,3 +32,17 @@ class CotisationAdmin(admin.ModelAdmin):
 class AdhesionAdmin(admin.ModelAdmin):
     list_display = ['utilisateur', 'tontine', 'ordre_tirage', 'actif']
     list_filter = ['actif', 'tontine']
+
+
+@admin.register(Depot)
+class DepotAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'montant', 'moyen_paiement', 'statut', 'date_creation']
+    list_filter = ['statut', 'moyen_paiement']
+    search_fields = ['utilisateur__username', 'reference_transaction']
+
+
+@admin.register(Retrait)
+class RetraitAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'montant_demande', 'frais', 'montant_net', 'statut', 'date_creation']
+    list_filter = ['statut', 'moyen_paiement']
+    search_fields = ['utilisateur__username', 'numero_reception']

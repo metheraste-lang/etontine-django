@@ -5,6 +5,17 @@
     <h2>🛠️ Créer une tontine</h2>
     <form method="post">
         {% csrf_token %}
+        <label for="type_tontine">Type de tontine</label>
+        <select name="type_tontine" id="type_tontine">
+            {% for valeur, libelle in types %}
+            <option value="{{ valeur }}">{{ libelle }}</option>
+            {% endfor %}
+        </select>
+        <p class="muted" style="font-size:0.8rem; margin-top:0.4rem;">
+            Individuelle : une épargne personnelle, pour vous seul(e).<br>
+            Collective : d'autres membres pourront la rejoindre grâce à un code d'invitation.
+        </p>
+
         <label for="nom">Nom de la tontine</label>
         <input type="text" name="nom" id="nom" required>
 

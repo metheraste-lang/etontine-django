@@ -27,15 +27,83 @@
 </div>
 
 <div class="card">
+    <h3>💳 Dépôts en attente de validation</h3>
+    {% if depots_en_attente %}
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Membre</th><th>Montant</th><th>Moyen</th><th>Référence</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for d in depots_en_attente %}
+        <tr>
+            <td>{{ d.utilisateur.first_name|default:d.utilisateur.username }}</td>
+            <td>{{ d.montant }} F</td>
+            <td>{{ d.get_moyen_paiement_display }}</td>
+            <td>{{ d.reference_transaction }}</td>
+            <td style="display:flex; gap:0.4rem;">
+                <form method="post" action="{% url 'valider_depot' d.id %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-green" style="padding:0.4rem 0.7rem; font-size:0.78rem;">Valider</button>
+                </form>
+                <form method="post" action="{% url 'rejeter_depot' d.id %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-red" style="padding:0.4rem 0.7rem; font-size:0.78rem;">Rejeter</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted">Aucun dépôt en attente.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>📤 Retraits en attente de validation</h3>
+    {% if retraits_en_attente %}
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Membre</th><th>Demandé</th><th>Frais</th><th>Net à envoyer</th><th>Réception</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for r in retraits_en_attente %}
+        <tr>
+            <td>{{ r.utilisateur.first_name|default:r.utilisateur.username }}</td>
+            <td>{{ r.montant_demande }} F</td>
+            <td>{{ r.frais }} F</td>
+            <td><strong style="color: var(--text);">{{ r.montant_net }} F</strong></td>
+            <td>{{ r.get_moyen_paiement_display }} — {{ r.numero_reception }}</td>
+            <td style="display:flex; gap:0.4rem;">
+                <form method="post" action="{% url 'valider_retrait' r.id %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-green" style="padding:0.4rem 0.7rem; font-size:0.78rem;">Valider</button>
+                </form>
+                <form method="post" action="{% url 'rejeter_retrait' r.id %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-red" style="padding:0.4rem 0.7rem; font-size:0.78rem;">Rejeter</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted">Aucun retrait en attente.</p>
+    {% endif %}
+</div>
+
+<div class="card">
     <h3>🧾 Tontines de la plateforme</h3>
     {% if tontines %}
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Nom</th><th>Créateur</th><th>Membres</th><th>Cotisation</th><th>Statut</th></tr></thead>
+        <thead><tr><th>Nom</th><th>Type</th><th>Créateur</th><th>Membres</th><th>Cotisation</th><th>Statut</th></tr></thead>
         <tbody>
         {% for t in tontines %}
             <tr>
                 <td><a href="{% url 'detail_tontine' t.id %}">{{ t.nom }}</a></td>
+                <td>{% if t.est_individuelle %}<span class="badge badge-blue">Indiv.</span>{% else %}<span class="badge badge-green">Collect.</span>{% endif %}</td>
                 <td>{{ t.createur.first_name|default:t.createur.username }}</td>
                 <td>{{ t.nombre_membres }}</td>
                 <td>{{ t.montant_cotisation }} F</td>

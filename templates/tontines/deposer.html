@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titre %}Dépôt — E-Tontine Tchad{% endblock %}
+{% block contenu %}
+<div class="card">
+    <h2>💳 Effectuer un dépôt</h2>
+    <p class="muted">Envoyez l'argent depuis votre mobile money, puis renseignez la référence de la transaction ci-dessous. Un administrateur validera votre dépôt avant qu'il n'apparaisse sur votre solde.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="montant">Montant (FCFA)</label>
+        <input type="number" step="0.01" min="1" name="montant" id="montant" required>
+
+        <label for="moyen_paiement">Moyen de paiement</label>
+        <select name="moyen_paiement" id="moyen_paiement" required>
+            {% for valeur, libelle in moyens %}
+            <option value="{{ valeur }}">{{ libelle }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="reference_transaction">Référence de la transaction</label>
+        <input type="text" name="reference_transaction" id="reference_transaction" placeholder="Ex : MP240814.1234.A56789" required>
+
+        <div class="btn-row"><button type="submit" class="btn-green">Envoyer la demande de dépôt</button></div>
+    </form>
+</div>
+{% endblock %}

@@ -52,12 +52,17 @@ def tableau_bord(request):
         adhesion__utilisateur=request.user,
     ).select_related('cycle__tontine').order_by('-id')[:8]
 
+    tontines_collectives = adhesions.filter(tontine__type_tontine='collective')
+    tontines_individuelles = adhesions.filter(tontine__type_tontine='individuelle')
+
     return render(request, 'comptes/tableau_bord.html', {
         'adhesions': adhesions,
         'total_cotise': total_cotise,
         'nombre_tontines': adhesions.count(),
         'en_attente': en_attente,
         'journal': journal,
+        'montant_collectives': sum(a.tontine.montant_cotisation for a in tontines_collectives),
+        'montant_individuelles': sum(a.tontine.montant_cotisation for a in tontines_individuelles),
     })
 
 
@@ -69,7 +74,7 @@ def est_admin(user):
 def espace_admin(request):
     from django.db.models import Sum
     from .models import Utilisateur
-    from tontines.models import Tontine, Cotisation, Adhesion
+    from tontines.models import Tontine, Cotisation, Adhesion, Depot, Retrait
 
     membres = Utilisateur.objects.order_by('-date_creation')
 
@@ -86,6 +91,14 @@ def espace_admin(request):
         'cycle__tontine', 'adhesion__utilisateur'
     ).order_by('-id')[:15]
 
+    depots_en_attente = Depot.objects.filter(
+        statut=Depot.STATUT_EN_ATTENTE,
+    ).select_related('utilisateur').order_by('date_creation')
+
+    retraits_en_attente = Retrait.objects.filter(
+        statut=Retrait.STATUT_EN_ATTENTE,
+    ).select_related('utilisateur').order_by('date_creation')
+
     return render(request, 'comptes/espace_admin.html', {
         'membres': membres,
         'nombre_membres': membres.count(),
@@ -95,4 +108,6 @@ def espace_admin(request):
         'total_collecte': total_collecte,
         'cotisations_en_attente': cotisations_en_attente,
         'journal_global': journal_global,
+        'depots_en_attente': depots_en_attente,
+        'retraits_en_attente': retraits_en_attente,
     })

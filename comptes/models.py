@@ -22,6 +22,7 @@ class Utilisateur(AbstractUser):
         help_text="Numéro de téléphone (ex: +235 XX XX XX XX)",
     )
     role = models.CharField(max_length=20, choices=ROLES, default=ROLE_MEMBRE)
+    solde = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Solde disponible en FCFA")
     date_creation = models.DateTimeField(auto_now_add=True)
 
     @property
