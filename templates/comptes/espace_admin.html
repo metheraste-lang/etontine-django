@@ -17,8 +17,16 @@
         <div class="value">{{ nombre_tontines_actives }} / {{ nombre_tontines }}</div>
     </div>
     <div class="stat-card green">
-        <div class="label">Total collecté</div>
+        <div class="label">Total collecté (cotisations)</div>
         <div class="value">{{ total_collecte }} F</div>
+    </div>
+    <div class="stat-card green">
+        <div class="label">Total déposé (validé)</div>
+        <div class="value">{{ total_depots_global }} F</div>
+    </div>
+    <div class="stat-card purple">
+        <div class="label">Total retiré (validé, net)</div>
+        <div class="value">{{ total_retraits_global }} F</div>
     </div>
     <div class="stat-card amber">
         <div class="label">Cotisations en attente</div>
@@ -100,7 +108,7 @@
     {% if tontines %}
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Nom</th><th>Type</th><th>Créateur</th><th>Membres</th><th>Cotisation</th><th>Total cotisé</th><th>Statut</th></tr></thead>
+        <thead><tr><th>Nom</th><th>Type</th><th>Créateur</th><th>Membres</th><th>Cotisation</th><th>Total cotisé</th><th>Total déposé</th><th>Total retiré</th><th>Statut</th></tr></thead>
         <tbody>
         {% for t in tontines %}
             <tr>
@@ -110,6 +118,8 @@
                 <td>{{ t.nombre_membres }}</td>
                 <td>{{ t.montant_cotisation }} F</td>
                 <td><strong style="color: var(--text);">{{ t.total_cotise_tontine }} F</strong></td>
+                <td>{{ t.total_depots_tontine }} F</td>
+                <td>{{ t.total_retraits_tontine }} F</td>
                 <td>
                     {% if t.statut == 'active' %}<span class="badge badge-green">Active</span>
                     {% else %}<span class="badge badge-red">Fermée</span>{% endif %}
@@ -128,7 +138,7 @@
     <h3>👥 Membres</h3>
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Statut</th><th>Total cotisé</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Statut</th><th>Cotisé</th><th>Déposé</th><th>Retiré</th><th>Actions</th></tr></thead>
         <tbody>
         {% for m in membres %}
         <tr>
@@ -143,6 +153,8 @@
                 {% else %}<span class="badge badge-red">Désactivé</span>{% endif %}
             </td>
             <td><strong style="color: var(--text);">{{ m.total_cotise }} F</strong></td>
+            <td><strong style="color: #86efac;">{{ m.total_depose }} F</strong></td>
+            <td><strong style="color: #fcd34d;">{{ m.total_retire }} F</strong></td>
             <td>
                 {% if m != user %}
                 <div style="display:flex; gap:0.3rem; flex-wrap:wrap;">
@@ -173,7 +185,7 @@
             </td>
         </tr>
         {% empty %}
-        <tr><td colspan="6" class="muted">Aucun membre pour l'instant.</td></tr>
+        <tr><td colspan="8" class="muted">Aucun membre pour l'instant.</td></tr>
         {% endfor %}
         </tbody>
     </table>
