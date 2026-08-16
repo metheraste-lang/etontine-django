@@ -31,11 +31,12 @@
     {% if depots_en_attente %}
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Membre</th><th>Montant</th><th>Moyen</th><th>Référence</th><th>Action</th></tr></thead>
+        <thead><tr><th>Membre</th><th>Tontine</th><th>Montant</th><th>Moyen</th><th>Référence</th><th>Action</th></tr></thead>
         <tbody>
         {% for d in depots_en_attente %}
         <tr>
             <td>{{ d.utilisateur.first_name|default:d.utilisateur.username }}</td>
+            <td>{{ d.tontine.nom|default:"—" }}</td>
             <td>{{ d.montant }} F</td>
             <td>{{ d.get_moyen_paiement_display }}</td>
             <td>{{ d.reference_transaction }}</td>
@@ -64,11 +65,12 @@
     {% if retraits_en_attente %}
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Membre</th><th>Demandé</th><th>Frais</th><th>Net à envoyer</th><th>Réception</th><th>Action</th></tr></thead>
+        <thead><tr><th>Membre</th><th>Tontine</th><th>Demandé</th><th>Frais</th><th>Net à envoyer</th><th>Réception</th><th>Action</th></tr></thead>
         <tbody>
         {% for r in retraits_en_attente %}
         <tr>
             <td>{{ r.utilisateur.first_name|default:r.utilisateur.username }}</td>
+            <td>{{ r.tontine.nom|default:"—" }}</td>
             <td>{{ r.montant_demande }} F</td>
             <td>{{ r.frais }} F</td>
             <td><strong style="color: var(--text);">{{ r.montant_net }} F</strong></td>
@@ -98,7 +100,7 @@
     {% if tontines %}
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Nom</th><th>Type</th><th>Créateur</th><th>Membres</th><th>Cotisation</th><th>Statut</th></tr></thead>
+        <thead><tr><th>Nom</th><th>Type</th><th>Créateur</th><th>Membres</th><th>Cotisation</th><th>Total cotisé</th><th>Statut</th></tr></thead>
         <tbody>
         {% for t in tontines %}
             <tr>
@@ -107,6 +109,7 @@
                 <td>{{ t.createur.first_name|default:t.createur.username }}</td>
                 <td>{{ t.nombre_membres }}</td>
                 <td>{{ t.montant_cotisation }} F</td>
+                <td><strong style="color: var(--text);">{{ t.total_cotise_tontine }} F</strong></td>
                 <td>
                     {% if t.statut == 'active' %}<span class="badge badge-green">Active</span>
                     {% else %}<span class="badge badge-red">Fermée</span>{% endif %}
@@ -125,7 +128,7 @@
     <h3>👥 Membres</h3>
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Statut</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Statut</th><th>Total cotisé</th><th>Actions</th></tr></thead>
         <tbody>
         {% for m in membres %}
         <tr>
@@ -139,6 +142,7 @@
                 {% if m.is_active %}<span class="badge badge-green">Actif</span>
                 {% else %}<span class="badge badge-red">Désactivé</span>{% endif %}
             </td>
+            <td><strong style="color: var(--text);">{{ m.total_cotise }} F</strong></td>
             <td>
                 {% if m != user %}
                 <div style="display:flex; gap:0.3rem; flex-wrap:wrap;">
@@ -169,11 +173,69 @@
             </td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="muted">Aucun membre pour l'instant.</td></tr>
+        <tr><td colspan="6" class="muted">Aucun membre pour l'instant.</td></tr>
         {% endfor %}
         </tbody>
     </table>
     </div>
+</div>
+
+<div class="card">
+    <h3>📜 Historique des dépôts (30 derniers)</h3>
+    {% if historique_depots %}
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Membre</th><th>Tontine</th><th>Montant</th><th>Moyen</th><th>Statut</th><th>Date</th></tr></thead>
+        <tbody>
+        {% for d in historique_depots %}
+        <tr>
+            <td>{{ d.utilisateur.first_name|default:d.utilisateur.username }}</td>
+            <td>{{ d.tontine.nom|default:"—" }}</td>
+            <td>{{ d.montant }} F</td>
+            <td>{{ d.get_moyen_paiement_display }}</td>
+            <td>
+                {% if d.statut == 'valide' %}<span class="badge badge-green">Validé</span>
+                {% elif d.statut == 'rejete' %}<span class="badge badge-red">Rejeté</span>
+                {% else %}<span class="badge badge-amber">En attente</span>{% endif %}
+            </td>
+            <td class="muted">{{ d.date_creation|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted">Aucun dépôt enregistré pour l'instant.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>📜 Historique des retraits (30 derniers)</h3>
+    {% if historique_retraits %}
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Membre</th><th>Tontine</th><th>Demandé</th><th>Net</th><th>Statut</th><th>Date</th></tr></thead>
+        <tbody>
+        {% for r in historique_retraits %}
+        <tr>
+            <td>{{ r.utilisateur.first_name|default:r.utilisateur.username }}</td>
+            <td>{{ r.tontine.nom|default:"—" }}</td>
+            <td>{{ r.montant_demande }} F</td>
+            <td>{{ r.montant_net }} F</td>
+            <td>
+                {% if r.statut == 'valide' %}<span class="badge badge-green">Envoyé</span>
+                {% elif r.statut == 'rejete' %}<span class="badge badge-red">Rejeté</span>
+                {% else %}<span class="badge badge-amber">En attente</span>{% endif %}
+            </td>
+            <td class="muted">{{ r.date_creation|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted">Aucun retrait enregistré pour l'instant.</p>
+    {% endif %}
 </div>
 
 <div class="card">

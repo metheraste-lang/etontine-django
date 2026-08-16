@@ -5,6 +5,9 @@
     <h2>📤 Effectuer un retrait</h2>
     <p class="muted">Solde disponible : <strong style="color: var(--text);">{{ user.solde }} F</strong></p>
 
+    {% if not adhesions %}
+    <p class="muted">Le retrait n'est possible que depuis une <strong style="color: var(--text);">tontine individuelle</strong>. Vous n'en avez aucune pour l'instant — <a href="{% url 'creer_tontine' %}">créez-en une</a> pour commencer à épargner.</p>
+    {% else %}
     <div class="card" style="background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.35); margin-bottom:0;">
         <p style="margin:0; font-weight:700; color:#fcd34d;">⚠️ Des frais de {{ frais_pourcent }}% sont prélevés sur chaque retrait pour le maintien du système.</p>
         <p class="muted" style="margin:0.5rem 0 0;">
@@ -14,6 +17,14 @@
 
     <form method="post" style="margin-top:1.2rem;">
         {% csrf_token %}
+
+        <label for="tontine_id">Tontine individuelle concernée</label>
+        <select name="tontine_id" id="tontine_id" required>
+            {% for adh in adhesions %}
+            <option value="{{ adh.tontine.id }}">{{ adh.tontine.nom }}</option>
+            {% endfor %}
+        </select>
+
         <label for="montant">Montant à retirer (FCFA)</label>
         <input type="number" step="0.01" min="1" name="montant" id="montant" oninput="recalculer()" required>
 
@@ -31,6 +42,7 @@
 
         <div class="btn-row"><button type="submit" class="btn-amber">Demander le retrait</button></div>
     </form>
+    {% endif %}
 </div>
 
 <script>

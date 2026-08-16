@@ -76,9 +76,9 @@ def espace_admin(request):
     from .models import Utilisateur
     from tontines.models import Tontine, Cotisation, Adhesion, Depot, Retrait
 
-    membres = Utilisateur.objects.order_by('-date_creation')
+    membres = list(Utilisateur.objects.order_by('-date_creation'))
 
-    tontines = Tontine.objects.all().order_by('-date_creation')
+    tontines = list(Tontine.objects.all().order_by('-date_creation'))
     total_collecte = Cotisation.objects.filter(
         statut=Cotisation.STATUT_PAYEE,
     ).aggregate(total=Sum('montant'))['total'] or 0
@@ -93,23 +93,46 @@ def espace_admin(request):
 
     depots_en_attente = Depot.objects.filter(
         statut=Depot.STATUT_EN_ATTENTE,
-    ).select_related('utilisateur').order_by('date_creation')
+    ).select_related('utilisateur', 'tontine').order_by('date_creation')
 
     retraits_en_attente = Retrait.objects.filter(
         statut=Retrait.STATUT_EN_ATTENTE,
-    ).select_related('utilisateur').order_by('date_creation')
+    ).select_related('utilisateur', 'tontine').order_by('date_creation')
+
+    # --- Cotisations totales par membre et par tontine ---
+    totaux_par_membre = {
+        ligne['adhesion__utilisateur']: ligne['total']
+        for ligne in Cotisation.objects.filter(statut=Cotisation.STATUT_PAYEE)
+            .values('adhesion__utilisateur').annotate(total=Sum('montant'))
+    }
+    for m in membres:
+        m.total_cotise = totaux_par_membre.get(m.id, 0)
+
+    totaux_par_tontine = {
+        ligne['cycle__tontine']: ligne['total']
+        for ligne in Cotisation.objects.filter(statut=Cotisation.STATUT_PAYEE)
+            .values('cycle__tontine').annotate(total=Sum('montant'))
+    }
+    for t in tontines:
+        t.total_cotise_tontine = totaux_par_tontine.get(t.id, 0)
+
+    # --- Historique complet des dépôts et retraits (membre + tontine visibles) ---
+    historique_depots = Depot.objects.select_related('utilisateur', 'tontine').order_by('-date_creation')[:30]
+    historique_retraits = Retrait.objects.select_related('utilisateur', 'tontine').order_by('-date_creation')[:30]
 
     return render(request, 'comptes/espace_admin.html', {
         'membres': membres,
-        'nombre_membres': membres.count(),
+        'nombre_membres': len(membres),
         'tontines': tontines,
-        'nombre_tontines': tontines.count(),
-        'nombre_tontines_actives': tontines.filter(statut=Tontine.STATUT_ACTIVE).count(),
+        'nombre_tontines': len(tontines),
+        'nombre_tontines_actives': sum(1 for t in tontines if t.statut == Tontine.STATUT_ACTIVE),
         'total_collecte': total_collecte,
         'cotisations_en_attente': cotisations_en_attente,
         'journal_global': journal_global,
         'depots_en_attente': depots_en_attente,
         'retraits_en_attente': retraits_en_attente,
+        'historique_depots': historique_depots,
+        'historique_retraits': historique_retraits,
     })
 
 

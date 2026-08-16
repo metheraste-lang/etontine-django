@@ -220,51 +220,74 @@ def detail_cycle(request, cycle_id):
 
 @login_required
 def deposer(request):
+    adhesions = Adhesion.objects.filter(
+        utilisateur=request.user, actif=True,
+    ).select_related('tontine').order_by('tontine__type_tontine', 'tontine__nom')
+
     if request.method == 'POST':
         montant = request.POST.get('montant')
         moyen_paiement = request.POST.get('moyen_paiement')
         reference = request.POST.get('reference_transaction', '').strip()
+        tontine_id = request.POST.get('tontine_id')
 
         try:
             montant_decimal = Decimal(montant)
         except (TypeError, ValueError, ArithmeticError):
             montant_decimal = None
 
-        if not montant_decimal or montant_decimal <= 0:
+        adhesion = Adhesion.objects.filter(
+            id__in=adhesions.values_list('id', flat=True), tontine_id=tontine_id,
+        ).select_related('tontine').first()
+
+        if not adhesion:
+            messages.error(request, "Merci de choisir une tontine valide.")
+        elif not montant_decimal or montant_decimal <= 0:
             messages.error(request, "Montant invalide.")
         elif not reference:
             messages.error(request, "Merci de renseigner la référence de la transaction mobile money.")
         else:
             Depot.objects.create(
-                utilisateur=request.user, montant=montant_decimal,
+                utilisateur=request.user, tontine=adhesion.tontine, montant=montant_decimal,
                 moyen_paiement=moyen_paiement, reference_transaction=reference,
             )
             messages.success(
                 request,
-                "Votre demande de dépôt a été enregistrée. Elle sera prise en compte "
-                "après validation par un administrateur."
+                f"Votre demande de dépôt pour « {adhesion.tontine.nom} » a été enregistrée. "
+                "Elle sera prise en compte après validation par un administrateur."
             )
             return redirect('tableau_bord')
 
     return render(request, 'tontines/deposer.html', {
         'moyens': MOYENS_MOBILE_MONEY,
         'numeros_depot': NUMEROS_DEPOT,
+        'adhesions': adhesions,
     })
 
 
 @login_required
 def retirer(request):
+    adhesions = Adhesion.objects.filter(
+        utilisateur=request.user, actif=True, tontine__type_tontine=Tontine.TYPE_INDIVIDUELLE,
+    ).select_related('tontine').order_by('tontine__nom')
+
     if request.method == 'POST':
         montant = request.POST.get('montant')
         moyen_paiement = request.POST.get('moyen_paiement')
         numero_reception = request.POST.get('numero_reception', '').strip()
+        tontine_id = request.POST.get('tontine_id')
 
         try:
             montant_decimal = Decimal(montant)
         except (TypeError, ValueError, ArithmeticError):
             montant_decimal = None
 
-        if not montant_decimal or montant_decimal <= 0:
+        adhesion = Adhesion.objects.filter(
+            id__in=adhesions.values_list('id', flat=True), tontine_id=tontine_id,
+        ).select_related('tontine').first()
+
+        if not adhesion:
+            messages.error(request, "Merci de choisir une tontine individuelle valide.")
+        elif not montant_decimal or montant_decimal <= 0:
             messages.error(request, "Montant invalide.")
         elif not numero_reception:
             messages.error(request, "Merci de renseigner le numéro mobile money qui recevra les fonds.")
@@ -277,7 +300,7 @@ def retirer(request):
             montant_net = montant_decimal - frais
 
             Retrait.objects.create(
-                utilisateur=request.user, montant_demande=montant_decimal,
+                utilisateur=request.user, tontine=adhesion.tontine, montant_demande=montant_decimal,
                 frais=frais, montant_net=montant_net,
                 moyen_paiement=moyen_paiement, numero_reception=numero_reception,
             )
@@ -287,15 +310,16 @@ def retirer(request):
 
             messages.success(
                 request,
-                f"Demande de retrait enregistrée : {montant_net} F seront envoyés après validation "
-                f"(frais de maintien du système de {FRAIS_RETRAIT_POURCENT}% = {frais} F déduits)."
+                f"Demande de retrait pour « {adhesion.tontine.nom} » enregistrée : {montant_net} F "
+                f"seront envoyés après validation (frais de maintien du système de "
+                f"{FRAIS_RETRAIT_POURCENT}% = {frais} F déduits)."
             )
             return redirect('tableau_bord')
 
-    frais_exemple = FRAIS_RETRAIT_POURCENT
     return render(request, 'tontines/retirer.html', {
         'moyens': MOYENS_MOBILE_MONEY,
-        'frais_pourcent': frais_exemple,
+        'frais_pourcent': FRAIS_RETRAIT_POURCENT,
+        'adhesions': adhesions,
     })
 
 

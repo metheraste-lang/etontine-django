@@ -197,6 +197,10 @@ class Depot(models.Model):
     ]
 
     utilisateur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='depots')
+    tontine = models.ForeignKey(
+        'Tontine', on_delete=models.CASCADE, related_name='depots',
+        null=True, blank=True, help_text="Tontine concernée par ce dépôt",
+    )
     montant = models.DecimalField(max_digits=12, decimal_places=2)
     moyen_paiement = models.CharField(max_length=20, choices=MOYENS_MOBILE_MONEY)
     reference_transaction = models.CharField(max_length=100, help_text="Référence/ID de la transaction mobile money")
@@ -228,6 +232,10 @@ class Retrait(models.Model):
     ]
 
     utilisateur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='retraits')
+    tontine = models.ForeignKey(
+        'Tontine', on_delete=models.CASCADE, related_name='retraits',
+        null=True, blank=True, help_text="Tontine individuelle concernée par ce retrait",
+    )
     montant_demande = models.DecimalField(max_digits=12, decimal_places=2)
     frais = models.DecimalField(max_digits=12, decimal_places=2)
     montant_net = models.DecimalField(max_digits=12, decimal_places=2, help_text="Montant réellement envoyé à l'utilisateur")

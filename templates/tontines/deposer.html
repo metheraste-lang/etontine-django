@@ -3,6 +3,10 @@
 {% block contenu %}
 <div class="card">
     <h2>💳 Effectuer un dépôt</h2>
+
+    {% if not adhesions %}
+    <p class="muted">Vous n'êtes membre d'aucune tontine pour l'instant. <a href="{% url 'creer_tontine' %}">Créez-en une</a> ou rejoignez-en une avant de déposer.</p>
+    {% else %}
     <p class="muted">Envoyez l'argent au numéro correspondant, puis renseignez la référence de la transaction ci-dessous. Un administrateur validera votre dépôt avant qu'il n'apparaisse sur votre solde.</p>
 
     <div class="card" style="background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.35); margin-bottom:0;">
@@ -18,6 +22,20 @@
 
     <form method="post" style="margin-top:1.2rem;">
         {% csrf_token %}
+
+        <label for="type_tontine">Type de tontine</label>
+        <select id="type_tontine" onchange="filtrerTontines()">
+            <option value="collective">Collective</option>
+            <option value="individuelle">Individuelle</option>
+        </select>
+
+        <label for="tontine_id">Nom de la tontine</label>
+        <select name="tontine_id" id="tontine_id" required>
+            {% for adh in adhesions %}
+            <option value="{{ adh.tontine.id }}" data-type="{{ adh.tontine.type_tontine }}">{{ adh.tontine.nom }}</option>
+            {% endfor %}
+        </select>
+
         <label for="montant">Montant (FCFA)</label>
         <input type="number" step="0.01" min="1" name="montant" id="montant" required>
 
@@ -34,6 +52,7 @@
 
         <div class="btn-row"><button type="submit" class="btn-green">Envoyer la demande de dépôt</button></div>
     </form>
+    {% endif %}
 </div>
 
 <script>
@@ -51,6 +70,21 @@
             zone.innerHTML = 'Ce moyen de paiement n\'est pas encore disponible pour le dépôt.';
         }
     }
-    document.addEventListener('DOMContentLoaded', afficherNumero);
+    function filtrerTontines() {
+        const type = document.getElementById('type_tontine').value;
+        const select = document.getElementById('tontine_id');
+        let premierVisible = null;
+        for (const option of select.options) {
+            const correspond = option.dataset.type === type;
+            option.hidden = !correspond;
+            option.disabled = !correspond;
+            if (correspond && premierVisible === null) premierVisible = option.value;
+        }
+        if (premierVisible !== null) select.value = premierVisible;
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        afficherNumero();
+        filtrerTontines();
+    });
 </script>
 {% endblock %}
