@@ -1,9 +1,12 @@
+import datetime
 import random
 import string
+from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
 from django.db.models import Sum
+from django.utils import timezone
 
 
 # Moyens de paiement mobile money disponibles au Tchad, utilisés pour les
@@ -28,6 +31,10 @@ NUMEROS_DEPOT = {
     MOYEN_AIRTEL: '86 75 25 75',
     MOYEN_MOOV: '98 58 75 97',
 }
+
+# Intérêts appliqués automatiquement sur les tontines individuelles.
+TAUX_INTERET_MENSUEL = Decimal('0.05')  # 5% par période
+PERIODE_INTERET_JOURS = 30
 
 
 class Tontine(models.Model):
@@ -61,6 +68,7 @@ class Tontine(models.Model):
     frequence = models.CharField(max_length=20, choices=FREQUENCES, default=FREQUENCE_MENSUELLE)
     statut = models.CharField(max_length=20, choices=STATUTS, default=STATUT_ACTIVE)
     code_invitation = models.CharField(max_length=8, unique=True, blank=True, help_text="Code à partager pour rejoindre cette tontine")
+    interets_actifs = models.BooleanField(default=True, help_text="Applique 5% d'intérêt tous les 30 jours (tontines individuelles uniquement)")
     createur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tontines_creees')
     date_creation = models.DateTimeField(auto_now_add=True)
 
@@ -105,6 +113,11 @@ class Adhesion(models.Model):
     ordre_tirage = models.PositiveIntegerField(help_text="Position dans la rotation des bénéficiaires")
     actif = models.BooleanField(default=True)
     date_adhesion = models.DateTimeField(auto_now_add=True)
+    solde = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0,
+        help_text="Montant accumulé sur cette tontine (épargne individuelle notamment)",
+    )
+    derniere_capitalisation = models.DateTimeField(default=timezone.now, help_text="Dernier point de calcul des intérêts")
 
     class Meta:
         unique_together = [('tontine', 'utilisateur')]
@@ -112,6 +125,10 @@ class Adhesion(models.Model):
 
     def __str__(self):
         return f"{self.utilisateur} — {self.tontine} (#{self.ordre_tirage})"
+
+    @property
+    def prochaine_capitalisation(self):
+        return self.derniere_capitalisation + datetime.timedelta(days=PERIODE_INTERET_JOURS)
 
 
 class Cycle(models.Model):
@@ -254,3 +271,87 @@ class Retrait(models.Model):
 
     def __str__(self):
         return f"Retrait {self.montant_demande} F — {self.utilisateur} — {self.get_statut_display()}"
+
+
+class Interet(models.Model):
+    """Trace chaque application d'intérêt sur une tontine individuelle."""
+
+    adhesion = models.ForeignKey(Adhesion, on_delete=models.CASCADE, related_name='interets')
+    montant = models.DecimalField(max_digits=12, decimal_places=2)
+    solde_avant = models.DecimalField(max_digits=12, decimal_places=2)
+    solde_apres = models.DecimalField(max_digits=12, decimal_places=2)
+    date_application = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_application']
+
+    def __str__(self):
+        return f"Intérêt {self.montant} F — {self.adhesion.utilisateur} — {self.adhesion.tontine.nom}"
+
+
+class Notification(models.Model):
+    """Notification affichée à un utilisateur suite à un événement (dépôt, retrait, intérêt, etc.)."""
+
+    utilisateur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    message = models.CharField(max_length=255)
+    lu = models.BooleanField(default=False)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+
+    def __str__(self):
+        return f"{self.utilisateur} — {self.message[:40]}"
+
+
+def notifier(utilisateur, message):
+    """Crée une notification pour un utilisateur."""
+    Notification.objects.create(utilisateur=utilisateur, message=message)
+
+
+def appliquer_interets(adhesion):
+    """
+    Capitalise les intérêts en attente pour une adhésion à une tontine individuelle.
+    Rattrape automatiquement toutes les périodes de 30 jours écoulées depuis le
+    dernier calcul, même si l'application n'a pas tourné entre-temps.
+    """
+    if adhesion.tontine.type_tontine != Tontine.TYPE_INDIVIDUELLE:
+        return
+    if not adhesion.tontine.interets_actifs:
+        return
+
+    maintenant = timezone.now()
+    periode = datetime.timedelta(days=PERIODE_INTERET_JOURS)
+    a_change = False
+    garde_fou = 0
+
+    while maintenant - adhesion.derniere_capitalisation >= periode and garde_fou < 1200:
+        garde_fou += 1
+        solde_avant = adhesion.solde
+        montant_interet = (solde_avant * TAUX_INTERET_MENSUEL).quantize(Decimal('0.01'))
+        adhesion.solde = solde_avant + montant_interet
+        adhesion.derniere_capitalisation += periode
+        a_change = True
+
+        if montant_interet > 0:
+            Interet.objects.create(
+                adhesion=adhesion, montant=montant_interet,
+                solde_avant=solde_avant, solde_apres=adhesion.solde,
+            )
+            notifier(
+                adhesion.utilisateur,
+                f"Intérêt de {montant_interet} F crédité sur votre tontine « {adhesion.tontine.nom} » "
+                f"(nouveau solde : {adhesion.solde} F)."
+            )
+
+    if a_change:
+        adhesion.save(update_fields=['solde', 'derniere_capitalisation'])
+
+
+def appliquer_interets_toutes():
+    """Rattrape les intérêts en attente pour toutes les tontines individuelles de la plateforme."""
+    adhesions = Adhesion.objects.filter(
+        tontine__type_tontine=Tontine.TYPE_INDIVIDUELLE, actif=True,
+    ).select_related('tontine', 'utilisateur')
+    for adhesion in adhesions:
+        appliquer_interets(adhesion)

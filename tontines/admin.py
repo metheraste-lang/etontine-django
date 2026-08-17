@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Tontine, Adhesion, Cycle, Cotisation, Depot, Retrait
+from .models import Tontine, Adhesion, Cycle, Cotisation, Depot, Retrait, Interet, Notification
 
 
 class AdhesionInline(admin.TabularInline):
@@ -30,8 +30,22 @@ class CotisationAdmin(admin.ModelAdmin):
 
 @admin.register(Adhesion)
 class AdhesionAdmin(admin.ModelAdmin):
-    list_display = ['utilisateur', 'tontine', 'ordre_tirage', 'actif']
+    list_display = ['utilisateur', 'tontine', 'ordre_tirage', 'actif', 'solde', 'derniere_capitalisation']
     list_filter = ['actif', 'tontine']
+
+
+@admin.register(Interet)
+class InteretAdmin(admin.ModelAdmin):
+    list_display = ['adhesion', 'montant', 'solde_avant', 'solde_apres', 'date_application']
+    list_filter = ['date_application']
+    search_fields = ['adhesion__utilisateur__username', 'adhesion__tontine__nom']
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'message', 'lu', 'date_creation']
+    list_filter = ['lu']
+    search_fields = ['utilisateur__username', 'message']
 
 
 @admin.register(Depot)
