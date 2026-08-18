@@ -104,6 +104,71 @@
 </div>
 
 <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.6rem;">
+        <h3 style="margin:0;">💰 Intérêts sur tontines individuelles (5% / 30 jours)</h3>
+        <form method="post" action="{% url 'recalculer_interets' %}" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-green" style="padding:0.5rem 0.9rem; font-size:0.8rem;">Recalculer maintenant</button>
+        </form>
+    </div>
+    {% if tontines_individuelles %}
+    <div class="table-wrap" style="margin-top:0.8rem;">
+    <table>
+        <thead><tr><th>Membre</th><th>Tontine</th><th>Solde actuel</th><th>Prochain intérêt</th><th>Intérêts</th><th></th></tr></thead>
+        <tbody>
+        {% for adh in tontines_individuelles %}
+        <tr>
+            <td>{{ adh.utilisateur.first_name|default:adh.utilisateur.username }}</td>
+            <td>{{ adh.tontine.nom }}</td>
+            <td><strong style="color: var(--text);">{{ adh.solde }} F</strong></td>
+            <td class="muted">{{ adh.prochaine_capitalisation|date:"d/m/Y" }}</td>
+            <td>
+                {% if adh.tontine.interets_actifs %}<span class="badge badge-green">Actifs</span>
+                {% else %}<span class="badge badge-red">Suspendus</span>{% endif %}
+            </td>
+            <td>
+                <form method="post" action="{% url 'basculer_interets' adh.tontine.id %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-outline" style="padding:0.35rem 0.6rem; font-size:0.72rem;">
+                        {% if adh.tontine.interets_actifs %}Suspendre{% else %}Réactiver{% endif %}
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted" style="margin-top:0.8rem;">Aucune tontine individuelle pour l'instant.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>📜 Historique des intérêts appliqués (20 derniers)</h3>
+    {% if historique_interets %}
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Membre</th><th>Tontine</th><th>Intérêt</th><th>Avant → Après</th><th>Date</th></tr></thead>
+        <tbody>
+        {% for i in historique_interets %}
+        <tr>
+            <td>{{ i.adhesion.utilisateur.first_name|default:i.adhesion.utilisateur.username }}</td>
+            <td>{{ i.adhesion.tontine.nom }}</td>
+            <td><strong style="color: #86efac;">+{{ i.montant }} F</strong></td>
+            <td class="muted">{{ i.solde_avant }} F → {{ i.solde_apres }} F</td>
+            <td class="muted">{{ i.date_application|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted">Aucun intérêt appliqué pour l'instant.</p>
+    {% endif %}
+</div>
+
+<div class="card">
     <h3>🧾 Tontines de la plateforme</h3>
     {% if tontines %}
     <div class="table-wrap">

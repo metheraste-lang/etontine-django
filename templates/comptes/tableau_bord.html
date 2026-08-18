@@ -15,13 +15,25 @@
     </div>
 </div>
 
+{% if notifications_recentes %}
+<div class="card" style="background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.35);">
+    <h3>🔔 Notifications récentes</h3>
+    {% for n in notifications_recentes %}
+    <p style="margin:0.4rem 0; font-size:0.88rem; {% if not n.lu %}font-weight:700;{% endif %}">
+        {{ n.message }} <span class="muted" style="font-size:0.75rem;">— {{ n.date_creation|timesince }}</span>
+    </p>
+    {% endfor %}
+    <a href="{% url 'notifications' %}" style="font-size:0.85rem;">Voir toutes mes notifications →</a>
+</div>
+{% endif %}
+
 <div class="stats-grid">
     <div class="stat-card green">
         <div class="label">Tontines collectives</div>
         <div class="value">{{ montant_collectives }} F</div>
     </div>
     <div class="stat-card">
-        <div class="label">Tontines individuelles</div>
+        <div class="label">Épargne individuelle</div>
         <div class="value">{{ montant_individuelles }} F</div>
     </div>
     <div class="stat-card amber">
@@ -30,18 +42,34 @@
     </div>
 </div>
 
+<div class="card" style="background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.35);">
+    <p style="margin:0; font-weight:700; color:#86efac;">💰 Les tontines individuelles rapportent 5% d'intérêt chaque mois calendaire (30 jours), calculé et ajouté automatiquement à votre épargne.</p>
+</div>
+
 <div class="card">
     <h3>📂 Vos tontines actives</h3>
     {% if adhesions %}
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Tontine</th><th>Cotisation</th><th>Fréquence</th><th></th></tr></thead>
+        <thead><tr><th>Tontine</th><th>Type</th><th>Solde / Cotisation</th><th>Détail</th><th></th></tr></thead>
         <tbody>
         {% for adh in adhesions %}
             <tr>
                 <td>{{ adh.tontine.nom }}</td>
+                <td>{% if adh.tontine.est_individuelle %}<span class="badge badge-blue">Indiv.</span>{% else %}<span class="badge badge-green">Collect.</span>{% endif %}</td>
+                {% if adh.tontine.est_individuelle %}
+                <td><strong style="color: var(--text);">{{ adh.solde }} F</strong></td>
+                <td class="muted" style="font-size:0.78rem;">
+                    {% if adh.tontine.interets_actifs %}
+                    Prochain intérêt (+5%) le {{ adh.prochaine_capitalisation|date:"d/m/Y" }}
+                    {% else %}
+                    Intérêts suspendus
+                    {% endif %}
+                </td>
+                {% else %}
                 <td>{{ adh.tontine.montant_cotisation }} F</td>
-                <td>{{ adh.tontine.get_frequence_display }}</td>
+                <td class="muted" style="font-size:0.78rem;">{{ adh.tontine.get_frequence_display }}</td>
+                {% endif %}
                 <td><a href="{% url 'detail_tontine' adh.tontine.id %}">Voir →</a></td>
             </tr>
         {% endfor %}

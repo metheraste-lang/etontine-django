@@ -179,6 +179,7 @@
             {% if user.is_authenticated %}
                 <a href="{% url 'tableau_bord' %}">Tableau de bord</a>
                 <a href="{% url 'liste_tontines' %}">Mes tontines</a>
+                <a href="{% url 'notifications' %}">🔔{% if notifications_non_lues %} <span class="badge badge-red">{{ notifications_non_lues }}</span>{% endif %}</a>
                 {% if user.est_administrateur %}<a href="{% url 'espace_admin' %}">Admin</a>{% endif %}
                 <form method="post" action="{% url 'deconnexion' %}" style="margin:0; display:inline;">
                     {% csrf_token %}

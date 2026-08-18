@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titre %}Mes notifications{% endblock %}
+{% block contenu %}
+<div class="card">
+    <h2>🔔 Mes notifications</h2>
+    <p class="muted">Vous êtes notifié à chaque validation ou rejet de dépôt/retrait, et à chaque application d'intérêt sur vos tontines individuelles.</p>
+</div>
+
+<div class="card">
+    {% if notifications %}
+    {% for n in notifications %}
+    <div style="padding:0.8rem 0; border-bottom:1px solid var(--card-border);">
+        <p style="margin:0; {% if not n.lu %}font-weight:700;{% endif %}">{{ n.message }}</p>
+        <p class="muted" style="margin:0.2rem 0 0; font-size:0.78rem;">{{ n.date_creation|date:"d/m/Y H:i" }}</p>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="muted">Aucune notification pour l'instant.</p>
+    {% endif %}
+</div>
+{% endblock %}

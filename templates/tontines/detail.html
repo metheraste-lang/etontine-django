@@ -12,6 +12,28 @@
     {% endif %}
 </div>
 
+{% if tontine.est_individuelle %}
+<div class="stats-grid">
+    <div class="stat-card green">
+        <div class="label">Solde épargne actuel</div>
+        <div class="value">{{ adhesion_utilisateur.solde }} F</div>
+    </div>
+    <div class="stat-card amber">
+        <div class="label">Taux d'intérêt</div>
+        <div class="value">5% / 30 jours</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Prochain intérêt</div>
+        <div class="value" style="font-size:1.05rem;">{{ adhesion_utilisateur.prochaine_capitalisation|date:"d/m/Y" }}</div>
+    </div>
+</div>
+<div class="card" style="background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.35);">
+    <p style="margin:0; color:#86efac; font-weight:700;">💰 Cette tontine individuelle rapporte automatiquement 5% d'intérêt tous les 30 jours calendaires, ajouté directement à votre solde épargne.</p>
+    {% if not tontine.interets_actifs %}
+    <p style="margin:0.5rem 0 0; color:#fca5a5;">⚠️ Les intérêts sont actuellement suspendus par un administrateur.</p>
+    {% endif %}
+</div>
+{% else %}
 <div class="stats-grid">
     <div class="stat-card green">
         <div class="label">Cotisation</div>
@@ -26,7 +48,9 @@
         <div class="value">{{ tontine.cagnotte_par_cycle }} F</div>
     </div>
 </div>
+{% endif %}
 
+{% if not tontine.est_individuelle %}
 <div class="card">
     <h3>👥 Membres et ordre de tirage</h3>
     <div class="table-wrap">
@@ -69,4 +93,5 @@
     <p class="muted">Aucun cycle n'a encore été créé.</p>
     {% endif %}
 </div>
+{% endif %}
 {% endblock %}

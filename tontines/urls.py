@@ -17,4 +17,6 @@ urlpatterns = [
     path('admin-tontine/depots/<int:depot_id>/rejeter/', views.rejeter_depot, name='rejeter_depot'),
     path('admin-tontine/retraits/<int:retrait_id>/valider/', views.valider_retrait, name='valider_retrait'),
     path('admin-tontine/retraits/<int:retrait_id>/rejeter/', views.rejeter_retrait, name='rejeter_retrait'),
+    path('admin-tontine/interets/recalculer/', views.recalculer_interets, name='recalculer_interets'),
+    path('admin-tontine/interets/<int:tontine_id>/basculer/', views.basculer_interets, name='basculer_interets'),
 ]

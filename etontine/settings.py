@@ -1,19 +1,27 @@
 """
 Configuration Django pour le projet E-Tontine Tchad.
 """
-from pathlib import Path
 import os
+from pathlib import Path
+
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ⚠️ À changer en production (utilisez une variable d'environnement)
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-CHANGEZ-MOI-EN-PRODUCTION-0000000000')
+# En production, définissez DJANGO_SECRET_KEY dans les variables d'environnement de l'hébergeur
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-CHANGEZ-MOI-EN-PRODUCTION-0000000000',
+)
 
-# ⚠️ Mettre False en production
+# DEBUG=False en production (définir DJANGO_DEBUG=False chez l'hébergeur)
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# En production, définir DJANGO_ALLOWED_HOSTS="monsite.onrender.com,www.monsite.com"
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()
+]
+# Render fournit son propre nom d'hôte automatiquement
 RENDER_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_HOSTNAME)
@@ -56,6 +64,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'comptes.context_processors.notifications',
             ],
         },
     },
@@ -63,7 +72,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'etontine.wsgi.application'
 
-# Base de données (SQLite pour démarrer, migrable vers PostgreSQL/MySQL)
+# Base de données : SQLite en local, PostgreSQL en production via DATABASE_URL
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",

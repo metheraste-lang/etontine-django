@@ -6,7 +6,11 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
-from .models import Tontine, Adhesion, Cycle, Cotisation, Depot, Retrait, MOYENS_MOBILE_MONEY, FRAIS_RETRAIT_POURCENT, NUMEROS_DEPOT
+from .models import (
+    Tontine, Adhesion, Cycle, Cotisation, Depot, Retrait, Interet,
+    MOYENS_MOBILE_MONEY, FRAIS_RETRAIT_POURCENT, NUMEROS_DEPOT,
+    notifier, appliquer_interets, appliquer_interets_toutes,
+)
 
 
 def _peut_gerer_tontine(user, tontine):
@@ -109,6 +113,11 @@ def rejoindre_par_code(request):
 def detail_tontine(request, tontine_id):
     tontine = get_object_or_404(Tontine, id=tontine_id)
     adhesion_utilisateur = Adhesion.objects.filter(tontine=tontine, utilisateur=request.user).first()
+
+    if adhesion_utilisateur and tontine.est_individuelle:
+        appliquer_interets(adhesion_utilisateur)
+        adhesion_utilisateur.refresh_from_db()
+
     cycles = tontine.cycles.all()
     membres = tontine.adhesions.filter(actif=True).select_related('utilisateur')
     return render(request, 'tontines/detail.html', {
@@ -201,6 +210,11 @@ def detail_cycle(request, cycle_id):
         from django.utils import timezone
         cotisation.date_paiement = timezone.now()
         cotisation.save()
+        notifier(
+            cotisation.adhesion.utilisateur,
+            f"Votre cotisation de {cotisation.montant} F pour « {tontine.nom} » "
+            f"(cycle {cycle.numero}) a été enregistrée comme payée."
+        )
         messages.success(request, "Cotisation enregistrée comme payée.")
         return redirect('detail_cycle', cycle_id=cycle.id)
 
@@ -285,14 +299,18 @@ def retirer(request):
             id__in=adhesions.values_list('id', flat=True), tontine_id=tontine_id,
         ).select_related('tontine').first()
 
+        if adhesion:
+            appliquer_interets(adhesion)
+            adhesion.refresh_from_db()
+
         if not adhesion:
             messages.error(request, "Merci de choisir une tontine individuelle valide.")
         elif not montant_decimal or montant_decimal <= 0:
             messages.error(request, "Montant invalide.")
         elif not numero_reception:
             messages.error(request, "Merci de renseigner le numéro mobile money qui recevra les fonds.")
-        elif montant_decimal > request.user.solde:
-            messages.error(request, "Solde insuffisant pour effectuer ce retrait.")
+        elif montant_decimal > adhesion.solde:
+            messages.error(request, f"Solde insuffisant sur cette tontine ({adhesion.solde} F disponibles).")
         else:
             frais = (montant_decimal * Decimal(FRAIS_RETRAIT_POURCENT) / Decimal(100)).quantize(
                 Decimal('0.01'), rounding=ROUND_HALF_UP
@@ -304,7 +322,10 @@ def retirer(request):
                 frais=frais, montant_net=montant_net,
                 moyen_paiement=moyen_paiement, numero_reception=numero_reception,
             )
-            # Le montant est retenu immédiatement ; il sera remboursé si la demande est rejetée
+            # Le montant est retenu immédiatement (sur la tontine et sur le solde global) ;
+            # il sera remboursé si la demande est rejetée.
+            adhesion.solde -= montant_decimal
+            adhesion.save(update_fields=['solde'])
             request.user.solde -= montant_decimal
             request.user.save(update_fields=['solde'])
 
@@ -338,6 +359,17 @@ def valider_depot(request, depot_id):
     depot.utilisateur.solde += depot.montant
     depot.utilisateur.save(update_fields=['solde'])
 
+    if depot.tontine:
+        adhesion = Adhesion.objects.filter(tontine=depot.tontine, utilisateur=depot.utilisateur).first()
+        if adhesion:
+            adhesion.solde += depot.montant
+            adhesion.save(update_fields=['solde'])
+
+    notifier(
+        depot.utilisateur,
+        f"Votre dépôt de {depot.montant} F"
+        f"{f' pour « {depot.tontine.nom} »' if depot.tontine else ''} a été validé."
+    )
     messages.success(request, f"Dépôt de {depot.montant} F validé pour {depot.utilisateur}.")
     return redirect('espace_admin')
 
@@ -349,6 +381,12 @@ def rejeter_depot(request, depot_id):
     depot.date_traitement = timezone.now()
     depot.traite_par = request.user
     depot.save()
+
+    notifier(
+        depot.utilisateur,
+        f"Votre dépôt de {depot.montant} F"
+        f"{f' pour « {depot.tontine.nom} »' if depot.tontine else ''} a été rejeté."
+    )
     messages.info(request, f"Dépôt de {depot.montant} F rejeté.")
     return redirect('espace_admin')
 
@@ -360,6 +398,13 @@ def valider_retrait(request, retrait_id):
     retrait.date_traitement = timezone.now()
     retrait.traite_par = request.user
     retrait.save()
+
+    notifier(
+        retrait.utilisateur,
+        f"Votre retrait de {retrait.montant_demande} F"
+        f"{f' sur « {retrait.tontine.nom} »' if retrait.tontine else ''} a été validé : "
+        f"{retrait.montant_net} F vous seront envoyés."
+    )
     messages.success(
         request,
         f"Retrait validé : {retrait.montant_net} F à envoyer à {retrait.utilisateur} "
@@ -376,9 +421,41 @@ def rejeter_retrait(request, retrait_id):
     retrait.traite_par = request.user
     retrait.save()
 
-    # Remboursement du montant retenu lors de la demande
+    # Remboursement du montant retenu lors de la demande (solde global + solde de la tontine)
     retrait.utilisateur.solde += retrait.montant_demande
     retrait.utilisateur.save(update_fields=['solde'])
 
+    if retrait.tontine:
+        adhesion = Adhesion.objects.filter(tontine=retrait.tontine, utilisateur=retrait.utilisateur).first()
+        if adhesion:
+            adhesion.solde += retrait.montant_demande
+            adhesion.save(update_fields=['solde'])
+
+    notifier(
+        retrait.utilisateur,
+        f"Votre retrait de {retrait.montant_demande} F"
+        f"{f' sur « {retrait.tontine.nom} »' if retrait.tontine else ''} a été rejeté et remboursé."
+    )
     messages.info(request, f"Retrait rejeté et {retrait.montant_demande} F remboursés à {retrait.utilisateur}.")
+    return redirect('espace_admin')
+
+
+# --------------------------------------------------------------------------
+# Contrôle des intérêts sur les tontines individuelles
+# --------------------------------------------------------------------------
+
+@user_passes_test(_est_admin, login_url='connexion')
+def recalculer_interets(request):
+    appliquer_interets_toutes()
+    messages.success(request, "Les intérêts en attente ont été recalculés pour toutes les tontines individuelles.")
+    return redirect('espace_admin')
+
+
+@user_passes_test(_est_admin, login_url='connexion')
+def basculer_interets(request, tontine_id):
+    tontine = get_object_or_404(Tontine, id=tontine_id, type_tontine=Tontine.TYPE_INDIVIDUELLE)
+    tontine.interets_actifs = not tontine.interets_actifs
+    tontine.save(update_fields=['interets_actifs'])
+    etat = "activés" if tontine.interets_actifs else "suspendus"
+    messages.success(request, f"Les intérêts sont maintenant {etat} pour « {tontine.nom} ».")
     return redirect('espace_admin')

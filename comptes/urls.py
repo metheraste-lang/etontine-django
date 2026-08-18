@@ -12,4 +12,5 @@ urlpatterns = [
     path('admin-tontine/utilisateurs/<int:user_id>/reinitialiser/', views.reinitialiser_mot_de_passe, name='reinitialiser_mot_de_passe'),
     path('admin-tontine/utilisateurs/<int:user_id>/role/', views.basculer_role, name='basculer_role'),
     path('admin-tontine/utilisateurs/<int:user_id>/statut/', views.basculer_actif, name='basculer_actif'),
+    path('notifications/', views.mes_notifications, name='notifications'),
 ]
