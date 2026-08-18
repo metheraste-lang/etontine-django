@@ -316,6 +316,30 @@
 </div>
 
 <div class="card">
+    <h3>📊 Répartition par membre et par tontine</h3>
+    <p class="muted" style="font-size:0.82rem;">Total déposé et retiré (validés) pour chaque membre, ventilé par tontine.</p>
+    {% if repartition_membre_tontine %}
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Membre</th><th>Tontine</th><th>Total déposé</th><th>Total retiré</th></tr></thead>
+        <tbody>
+        {% for ligne in repartition_membre_tontine %}
+        <tr>
+            <td>{{ ligne.membre.first_name|default:ligne.membre.username }}</td>
+            <td>{{ ligne.tontine.nom }}</td>
+            <td><strong style="color: #86efac;">{{ ligne.total_depose }} F</strong></td>
+            <td><strong style="color: #fcd34d;">{{ ligne.total_retire }} F</strong></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="muted">Aucun dépôt ou retrait validé pour l'instant.</p>
+    {% endif %}
+</div>
+
+<div class="card">
     <h3>📜 Journal global des cotisations</h3>
     {% if journal_global %}
     <div class="table-wrap">

@@ -156,6 +156,41 @@ def espace_admin(request):
         t.total_depots_tontine = depots_valides_par_tontine.get(t.id, 0)
         t.total_retraits_tontine = retraits_valides_par_tontine.get(t.id, 0)
 
+    # --- Répartition croisée : dépôts/retraits validés par membre ET par tontine ---
+    depots_croises = Depot.objects.filter(
+        statut=Depot.STATUT_VALIDE, tontine__isnull=False,
+    ).values('utilisateur', 'tontine').annotate(total=Sum('montant'))
+
+    retraits_croises = Retrait.objects.filter(
+        statut=Retrait.STATUT_VALIDE, tontine__isnull=False,
+    ).values('utilisateur', 'tontine').annotate(total=Sum('montant_net'))
+
+    croise = {}
+    for ligne in depots_croises:
+        cle = (ligne['utilisateur'], ligne['tontine'])
+        croise.setdefault(cle, {'depose': 0, 'retire': 0})
+        croise[cle]['depose'] = ligne['total']
+    for ligne in retraits_croises:
+        cle = (ligne['utilisateur'], ligne['tontine'])
+        croise.setdefault(cle, {'depose': 0, 'retire': 0})
+        croise[cle]['retire'] = ligne['total']
+
+    membres_par_id = {m.id: m for m in membres}
+    tontines_par_id = {t.id: t for t in tontines}
+    repartition_membre_tontine = []
+    for (uid, tid), valeurs in croise.items():
+        membre = membres_par_id.get(uid)
+        tontine = tontines_par_id.get(tid)
+        if not membre or not tontine:
+            continue
+        repartition_membre_tontine.append({
+            'membre': membre,
+            'tontine': tontine,
+            'total_depose': valeurs['depose'],
+            'total_retire': valeurs['retire'],
+        })
+    repartition_membre_tontine.sort(key=lambda ligne: (str(ligne['membre']), str(ligne['tontine'])))
+
     total_depots_global = Depot.objects.filter(
         statut=Depot.STATUT_VALIDE,
     ).aggregate(total=Sum('montant'))['total'] or 0
@@ -193,6 +228,7 @@ def espace_admin(request):
         'historique_retraits': historique_retraits,
         'tontines_individuelles': adhesions_individuelles,
         'historique_interets': historique_interets,
+        'repartition_membre_tontine': repartition_membre_tontine,
     })
 
 
