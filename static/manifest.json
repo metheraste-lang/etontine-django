@@ -1,6 +1,6 @@
 {
     "name": "E-Tontine Tchad",
-    "short_name": "E-Tontine",
+    "short_name": "E-Tontine Tchad",
     "description": "Gestion de tontines individuelles et collectives au Tchad",
     "start_url": "/tableau-de-bord/",
     "scope": "/",
