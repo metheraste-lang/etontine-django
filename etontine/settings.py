@@ -85,6 +85,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {'NAME': 'comptes.validators.MotDePasseComplexeValidator'},
 ]
 
 # Modèle utilisateur personnalisé (voir comptes/models.py)
@@ -110,3 +111,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'connexion'
 LOGIN_REDIRECT_URL = 'tableau_bord'
 LOGOUT_REDIRECT_URL = 'connexion'
+
+# Envoi d'e-mails (réinitialisation de mot de passe, etc.)
+# En développement (aucune variable définie) : les e-mails s'affichent dans la console.
+# En production, définissez EMAIL_HOST_USER et EMAIL_HOST_PASSWORD dans les variables
+# d'environnement Render (ex : adresse Gmail + mot de passe d'application).
+if os.environ.get('EMAIL_HOST_USER'):
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@etontinetchad.com'

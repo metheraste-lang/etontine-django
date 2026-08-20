@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block titre %}Mot de passe modifié — E-Tontine Tchad{% endblock %}
+{% block contenu %}
+<div class="card">
+    <h2>✅ Mot de passe modifié</h2>
+    <p class="muted">Votre mot de passe a bien été mis à jour. Vous pouvez maintenant vous connecter.</p>
+    <div class="btn-row"><a href="{% url 'connexion' %}" class="btn btn-green">Se connecter</a></div>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block titre %}E-mail envoyé — E-Tontine Tchad{% endblock %}
+{% block contenu %}
+<div class="card">
+    <h2>📩 E-mail envoyé</h2>
+    <p class="muted">Si un compte existe avec cette adresse e-mail, un lien de réinitialisation vient de vous être envoyé. Vérifiez votre boîte de réception (et vos spams).</p>
+    <p class="muted" style="margin-top:1rem;"><a href="{% url 'connexion' %}">← Retour à la connexion</a></p>
+</div>
+{% endblock %}

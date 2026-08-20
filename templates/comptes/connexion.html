@@ -12,6 +12,7 @@
         {% endfor %}
         <div class="btn-row"><button type="submit">Se connecter</button></div>
     </form>
-    <p class="muted" style="margin-top:1rem;">Pas encore de compte ? <a href="{% url 'inscription' %}">Inscrivez-vous</a></p>
+    <p class="muted" style="margin-top:1rem;"><a href="{% url 'password_reset' %}">Mot de passe oublié ?</a></p>
+    <p class="muted" style="margin-top:0.5rem;">Pas encore de compte ? <a href="{% url 'inscription' %}">Inscrivez-vous</a></p>
 </div>
 {% endblock %}

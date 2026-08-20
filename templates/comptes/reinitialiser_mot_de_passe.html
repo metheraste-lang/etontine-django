@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titre %}Nouveau mot de passe — E-Tontine Tchad{% endblock %}
+{% block contenu %}
+<div class="card">
+    <h2>🔒 Choisir un nouveau mot de passe</h2>
+    {% if validlink %}
+    <p class="muted">Votre mot de passe doit contenir au moins 8 caractères, un chiffre et un caractère spécial.</p>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for erreur in field.errors %}<div class="erreur">{{ erreur }}</div>{% endfor %}
+        {% endfor %}
+        <div class="btn-row"><button type="submit" class="btn-green">Enregistrer le nouveau mot de passe</button></div>
+    </form>
+    {% else %}
+    <p class="muted">Ce lien de réinitialisation est invalide ou a déjà été utilisé. Demandez-en un nouveau depuis la page <a href="{% url 'password_reset' %}">mot de passe oublié</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}
