@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from .forms import PasswordResetFormDiagnostic
 
 urlpatterns = [
     path('', views.tableau_bord, name='accueil'),
@@ -23,6 +24,7 @@ urlpatterns = [
             email_template_name='comptes/email_reinitialisation.txt',
             subject_template_name='comptes/email_reinitialisation_sujet.txt',
             success_url='/mot-de-passe-oublie/envoye/',
+            form_class=PasswordResetFormDiagnostic,
         ),
         name='password_reset',
     ),
