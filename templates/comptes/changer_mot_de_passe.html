@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block titre %}Changer mon mot de passe — E-Tontine Tchad{% endblock %}
+{% block contenu %}
+<div class="card">
+    <h2>🔒 Changer mon mot de passe</h2>
+    <p class="muted">Votre nouveau mot de passe doit contenir au moins 8 caractères, un chiffre et un caractère spécial.</p>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for erreur in field.errors %}<div class="erreur">{{ erreur }}</div>{% endfor %}
+        {% endfor %}
+        <div class="btn-row"><button type="submit" class="btn-green">Enregistrer le nouveau mot de passe</button></div>
+    </form>
+    <p class="muted" style="margin-top:1rem;"><a href="{% url 'tableau_bord' %}">← Retour au tableau de bord</a></p>
+</div>
+{% endblock %}

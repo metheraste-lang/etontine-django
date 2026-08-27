@@ -34,5 +34,9 @@ class Utilisateur(AbstractUser):
     def est_administrateur(self):
         return self.role == self.ROLE_ADMIN or self.is_superuser
 
+    @property
+    def numero_membre(self):
+        return f"ET-{self.id:05d}"
+
     def __str__(self):
         return f"{self.get_full_name() or self.username} ({self.telephone})"

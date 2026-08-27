@@ -1,7 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-from .forms import PasswordResetFormDiagnostic
 
 urlpatterns = [
     path('', views.tableau_bord, name='accueil'),
@@ -16,34 +15,18 @@ urlpatterns = [
     path('admin-tontine/utilisateurs/<int:user_id>/statut/', views.basculer_actif, name='basculer_actif'),
     path('notifications/', views.mes_notifications, name='notifications'),
 
-    # Réinitialisation du mot de passe par e-mail
+    # Changement de mot de passe par l'utilisateur connecté lui-même
     path(
-        'mot-de-passe-oublie/',
-        auth_views.PasswordResetView.as_view(
-            template_name='comptes/mot_de_passe_oublie.html',
-            email_template_name='comptes/email_reinitialisation.txt',
-            subject_template_name='comptes/email_reinitialisation_sujet.txt',
-            success_url='/mot-de-passe-oublie/envoye/',
-            form_class=PasswordResetFormDiagnostic,
+        'mon-compte/changer-mot-de-passe/',
+        auth_views.PasswordChangeView.as_view(
+            template_name='comptes/changer_mot_de_passe.html',
+            success_url='/mon-compte/changer-mot-de-passe/termine/',
         ),
-        name='password_reset',
+        name='password_change',
     ),
     path(
-        'mot-de-passe-oublie/envoye/',
-        auth_views.PasswordResetDoneView.as_view(template_name='comptes/mot_de_passe_oublie_envoye.html'),
-        name='password_reset_done',
-    ),
-    path(
-        'reinitialiser/<uidb64>/<token>/',
-        auth_views.PasswordResetConfirmView.as_view(
-            template_name='comptes/reinitialiser_mot_de_passe.html',
-            success_url='/reinitialiser/termine/',
-        ),
-        name='password_reset_confirm',
-    ),
-    path(
-        'reinitialiser/termine/',
-        auth_views.PasswordResetCompleteView.as_view(template_name='comptes/reinitialiser_mot_de_passe_termine.html'),
-        name='password_reset_complete',
+        'mon-compte/changer-mot-de-passe/termine/',
+        auth_views.PasswordChangeDoneView.as_view(template_name='comptes/changer_mot_de_passe_termine.html'),
+        name='password_change_done',
     ),
 ]

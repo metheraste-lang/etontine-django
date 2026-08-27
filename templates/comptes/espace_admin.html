@@ -203,10 +203,11 @@
     <h3>👥 Membres</h3>
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Statut</th><th>Cotisé</th><th>Déposé</th><th>Retiré</th><th>Actions</th></tr></thead>
+        <thead><tr><th>ID</th><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Statut</th><th>Cotisé</th><th>Déposé</th><th>Retiré</th><th>Actions</th></tr></thead>
         <tbody>
         {% for m in membres %}
         <tr>
+            <td><code>{{ m.numero_membre }}</code></td>
             <td>{{ m.first_name }} {{ m.last_name }}</td>
             <td>{{ m.telephone }}</td>
             <td>
@@ -250,7 +251,7 @@
             </td>
         </tr>
         {% empty %}
-        <tr><td colspan="8" class="muted">Aucun membre pour l'instant.</td></tr>
+        <tr><td colspan="9" class="muted">Aucun membre pour l'instant.</td></tr>
         {% endfor %}
         </tbody>
     </table>

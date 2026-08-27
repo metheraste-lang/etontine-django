@@ -4,13 +4,14 @@
 
 <div class="card">
     <h2>{{ user.first_name|default:user.username }} 🚀</h2>
-    <p class="muted">Statut : Connecté en sécurité. Rôle : {{ user.get_role_display }}</p>
+    <p class="muted">Statut : Connecté en sécurité. Rôle : {{ user.get_role_display }} · ID membre : <strong style="color: var(--text);">{{ user.numero_membre }}</strong></p>
     <p style="font-size:1.6rem; font-weight:800; margin:0.6rem 0 0;">{{ user.solde }} F <span class="muted" style="font-size:0.8rem; font-weight:600;">de solde disponible</span></p>
     <div class="btn-row">
         <a href="{% url 'deposer' %}" class="btn btn-green">💳 Dépôt</a>
         <a href="{% url 'retirer' %}" class="btn btn-amber">📤 Retrait</a>
         <a href="{% url 'liste_tontines' %}" class="btn">📂 Mes tontines</a>
         <a href="{% url 'creer_tontine' %}" class="btn btn-outline">🛠️ Créer / Rejoindre</a>
+        <a href="{% url 'password_change' %}" class="btn btn-outline">🔒 Changer mon mot de passe</a>
         {% if user.est_administrateur %}<a href="{% url 'espace_admin' %}" class="btn btn-outline">⚙️ Espace admin</a>{% endif %}
     </div>
 </div>
