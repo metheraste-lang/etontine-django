@@ -3,13 +3,7 @@
 {% block contenu %}
 <div class="card">
   <h2>🔑 Mot de passe oublié</h2>
-  <p>Entrez votre numéro de membre et votre numéro de téléphone pour réinitialiser votre mot de passe.</p>
-
-  {% if form.non_field_errors %}
-    <div class="alert alert-danger">
-      {{ form.non_field_errors }}
-    </div>
-  {% endif %}
+  <p>Entrez l'adresse email associée à votre compte. Un lien de réinitialisation vous sera envoyé.</p>
 
   <form method="post">
     {% csrf_token %}
@@ -20,7 +14,7 @@
         <div class="alert alert-danger">{{ field.errors }}</div>
       {% endif %}
     {% endfor %}
-    <button type="submit">Réinitialiser le mot de passe</button>
+    <button type="submit">Envoyer le lien de réinitialisation</button>
   </form>
 
   <p><a href="{% url 'connexion' %}">Retour à la connexion</a></p>

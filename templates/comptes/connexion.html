@@ -10,9 +10,17 @@
             {{ field }}
             {% for erreur in field.errors %}<div class="erreur">{{ erreur }}</div>{% endfor %}
         {% endfor %}
+        <label style="display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem;">
+          <input type="checkbox" id="afficher-mdp-connexion" onclick="
+            document.querySelectorAll('input[type=password]').forEach(function(champ){
+              champ.type = this.checked ? 'text' : 'password';
+            }, this);
+          ">
+          Afficher le mot de passe
+        </label>
         <div class="btn-row"><button type="submit">Se connecter</button></div>
     </form>
     <p class="muted" style="margin-top:1rem;">Pas encore de compte ? <a href="{% url 'inscription' %}">Inscrivez-vous</a></p>
-    <p class="muted" style="margin-top:0.5rem; font-size:0.8rem;"><a href="{% url 'mot_de_passe_oublie' %}">Mot de passe oublié ?</a></p>
+    <p class="muted" style="margin-top:0.5rem; font-size:0.8rem;"><a href="{% url 'password_reset' %}">Mot de passe oublié ?</a></p>
 </div>
 {% endblock %}

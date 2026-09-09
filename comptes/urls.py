@@ -29,5 +29,33 @@ urlpatterns = [
         auth_views.PasswordChangeDoneView.as_view(template_name='comptes/changer_mot_de_passe_termine.html'),
         name='password_change_done',
     ),
-    path('mot-de-passe-oublie/', views.mot_de_passe_oublie, name='mot_de_passe_oublie'),
+    # Réinitialisation du mot de passe par email
+    path(
+        'mot-de-passe-oublie/',
+        auth_views.PasswordResetView.as_view(
+            template_name='comptes/mot_de_passe_oublie.html',
+            email_template_name='comptes/email_reinitialisation.html',
+            subject_template_name='comptes/email_reinitialisation_sujet.txt',
+            success_url='/mot-de-passe-oublie/envoye/',
+        ),
+        name='password_reset',
+    ),
+    path(
+        'mot-de-passe-oublie/envoye/',
+        auth_views.PasswordResetDoneView.as_view(template_name='comptes/mot_de_passe_oublie_envoye.html'),
+        name='password_reset_done',
+    ),
+    path(
+        'reinitialiser/<uidb64>/<token>/',
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name='comptes/reinitialiser_mot_de_passe.html',
+            success_url='/reinitialiser/termine/',
+        ),
+        name='password_reset_confirm',
+    ),
+    path(
+        'reinitialiser/termine/',
+        auth_views.PasswordResetCompleteView.as_view(template_name='comptes/reinitialiser_mot_de_passe_termine.html'),
+        name='password_reset_complete',
+    ),
 ]
