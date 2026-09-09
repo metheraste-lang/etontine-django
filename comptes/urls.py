@@ -29,4 +29,5 @@ urlpatterns = [
         auth_views.PasswordChangeDoneView.as_view(template_name='comptes/changer_mot_de_passe_termine.html'),
         name='password_change_done',
     ),
+    path('mot-de-passe-oublie/', views.mot_de_passe_oublie, name='mot_de_passe_oublie'),
 ]

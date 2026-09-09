@@ -31,3 +31,19 @@ class InscriptionForm(UserCreationForm):
         if Utilisateur.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError("Cette adresse e-mail est déjà utilisée.")
         return email
+
+
+class MotDePasseOublieForm(forms.Form):
+    numero_membre = forms.CharField(
+        label="Numéro de membre",
+        widget=forms.TextInput(attrs={'placeholder': 'ET-00001'}),
+    )
+    telephone = forms.CharField(label="Numéro de téléphone")
+    nouveau_mot_de_passe = forms.CharField(widget=forms.PasswordInput, label="Nouveau mot de passe")
+    confirmer_mot_de_passe = forms.CharField(widget=forms.PasswordInput, label="Confirmer le mot de passe")
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('nouveau_mot_de_passe') != cleaned.get('confirmer_mot_de_passe'):
+            raise forms.ValidationError("Les mots de passe ne correspondent pas.")
+        return cleaned

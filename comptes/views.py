@@ -329,3 +329,26 @@ def mes_notifications(request):
     Notification.objects.filter(utilisateur=request.user, lu=False).update(lu=True)
 
     return render(request, 'comptes/notifications.html', {'notifications': notifications})
+
+
+def mot_de_passe_oublie(request):
+    from django.contrib import messages
+    from .forms import MotDePasseOublieForm
+    from .models import Utilisateur
+
+    if request.method == 'POST':
+        form = MotDePasseOublieForm(request.POST)
+        if form.is_valid():
+            numero = form.cleaned_data['numero_membre'].strip().upper()
+            telephone = form.cleaned_data['telephone'].strip()
+            try:
+                membre_id = int(numero.replace('ET-', '').lstrip('0') or '0')
+                user = Utilisateur.objects.get(id=membre_id, telephone=telephone)
+                user.set_password(form.cleaned_data['nouveau_mot_de_passe'])
+                user.save()
+                return redirect('password_change_done')
+            except (Utilisateur.DoesNotExist, ValueError):
+                form.add_error(None, "Numéro de membre ou numéro de téléphone incorrect.")
+    else:
+        form = MotDePasseOublieForm()
+    return render(request, 'comptes/mot_de_passe_oublie.html', {'form': form})

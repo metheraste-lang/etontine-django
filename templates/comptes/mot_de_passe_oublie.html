@@ -1,15 +1,28 @@
 {% extends "base.html" %}
-{% block titre %}Mot de passe oublié — E-Tontine Tchad{% endblock %}
+{% block titre %}Mot de passe oublié – E-Tontine Tchad{% endblock %}
 {% block contenu %}
 <div class="card">
-    <h2>🔑 Mot de passe oublié</h2>
-    <p class="muted">Indiquez l'adresse e-mail associée à votre compte. Vous recevrez un lien pour choisir un nouveau mot de passe.</p>
-    <form method="post">
-        {% csrf_token %}
-        <label for="id_email">Adresse e-mail</label>
-        <input type="email" name="email" id="id_email" placeholder="vous@exemple.com" required>
-        <div class="btn-row"><button type="submit">Envoyer le lien de réinitialisation</button></div>
-    </form>
-    <p class="muted" style="margin-top:1rem;"><a href="{% url 'connexion' %}">← Retour à la connexion</a></p>
+  <h2>🔑 Mot de passe oublié</h2>
+  <p>Entrez votre numéro de membre et votre numéro de téléphone pour réinitialiser votre mot de passe.</p>
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">
+      {{ form.non_field_errors }}
+    </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}
+        <div class="alert alert-danger">{{ field.errors }}</div>
+      {% endif %}
+    {% endfor %}
+    <button type="submit">Réinitialiser le mot de passe</button>
+  </form>
+
+  <p><a href="{% url 'connexion' %}">Retour à la connexion</a></p>
 </div>
 {% endblock %}
