@@ -459,3 +459,72 @@ def basculer_interets(request, tontine_id):
     etat = "activés" if tontine.interets_actifs else "suspendus"
     messages.success(request, f"Les intérêts sont maintenant {etat} pour « {tontine.nom} ».")
     return redirect('espace_admin')
+
+
+@login_required
+def releve_pdf(request):
+    """Génère un relevé PDF des transactions de l'utilisateur, filtré par tontine si précisé."""
+    from django.http import HttpResponse
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import cm
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet
+
+    tontine_id = request.GET.get('tontine')
+    tontine = None
+    if tontine_id:
+        tontine = get_object_or_404(Tontine, id=tontine_id)
+
+    cotisations = Cotisation.objects.filter(adhesion__utilisateur=request.user)
+    depots = Depot.objects.filter(utilisateur=request.user)
+    retraits = Retrait.objects.filter(utilisateur=request.user)
+
+    if tontine:
+        cotisations = cotisations.filter(cycle__tontine=tontine)
+        depots = depots.filter(tontine=tontine)
+        retraits = retraits.filter(tontine=tontine)
+
+    lignes = []
+    for c in cotisations:
+        lignes.append((c.date_paiement, "Cotisation", c.cycle.tontine.nom, c.montant, c.get_statut_display()))
+    for d in depots:
+        lignes.append((d.date_creation, "Dépôt", d.tontine.nom if d.tontine else "—", d.montant, d.get_statut_display()))
+    for r in retraits:
+        lignes.append((r.date_creation, "Retrait", r.tontine.nom if r.tontine else "—", r.montant_demande, r.get_statut_display()))
+
+    lignes.sort(key=lambda x: x[0] or timezone.now(), reverse=True)
+
+    response = HttpResponse(content_type='application/pdf')
+    nom_fichier = f"releve_{request.user.username}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{nom_fichier}"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4, topMargin=2*cm, bottomMargin=2*cm)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    titre = f"Relevé de transactions – {request.user.get_full_name() or request.user.username}"
+    if tontine:
+        titre += f" – {tontine.nom}"
+    elements.append(Paragraph(titre, styles['Title']))
+    elements.append(Paragraph(f"Généré le {timezone.now().strftime('%d/%m/%Y à %H:%M')}", styles['Normal']))
+    elements.append(Spacer(1, 0.5*cm))
+
+    data = [["Date", "Type", "Tontine", "Montant (F)", "Statut"]]
+    for date, type_op, nom_tontine, montant, statut in lignes:
+        date_str = date.strftime('%d/%m/%Y') if date else "—"
+        data.append([date_str, type_op, nom_tontine, f"{montant:,.0f}".replace(",", " "), statut])
+
+    table = Table(data, colWidths=[2.5*cm, 2.5*cm, 4*cm, 3*cm, 3.5*cm])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a3c6e')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f0f0')]),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+    elements.append(table)
+
+    doc.build(elements)
+    return response

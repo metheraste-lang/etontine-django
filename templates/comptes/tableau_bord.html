@@ -6,6 +6,7 @@
     <h2>{{ user.first_name|default:user.username }} 🚀</h2>
     <p class="muted">Statut : Connecté en sécurité. Rôle : {{ user.get_role_display }} · ID membre : <strong style="color: var(--text);">{{ user.numero_membre }}</strong></p>
     <p style="font-size:1.6rem; font-weight:800; margin:0.6rem 0 0;">{{ user.solde }} F <span class="muted" style="font-size:0.8rem; font-weight:600;">de solde disponible</span></p>
+        <p style="margin-top:0.5rem;"><a href="{% url 'releve_pdf' %}">📄 Télécharger mon relevé de transactions (PDF)</a></p>
     <div class="btn-row">
         <a href="{% url 'deposer' %}" class="btn btn-green">💳 Dépôt</a>
         <a href="{% url 'retirer' %}" class="btn btn-amber">📤 Retrait</a>
