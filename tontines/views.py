@@ -9,7 +9,7 @@ from django.utils import timezone
 from .models import (
     Tontine, Adhesion, Cycle, Cotisation, Depot, Retrait, Interet,
     MOYENS_MOBILE_MONEY, FRAIS_RETRAIT_POURCENT, NUMEROS_DEPOT,
-    notifier, appliquer_interets, appliquer_interets_toutes,
+    notifier, notifier_email, appliquer_interets, appliquer_interets_toutes,
 )
 
 
@@ -370,6 +370,11 @@ def valider_depot(request, depot_id):
         f"Votre dépôt de {depot.montant} F"
         f"{f' pour « {depot.tontine.nom} »' if depot.tontine else ''} a été validé."
     )
+    notifier_email(
+        depot.utilisateur,
+        "Depot valide - E-Tontine Tchad",
+        f"Votre depot de {depot.montant} F a ete valide et credite sur votre solde.",
+    )
     messages.success(request, f"Dépôt de {depot.montant} F validé pour {depot.utilisateur}.")
     return redirect('espace_admin')
 
@@ -386,6 +391,11 @@ def rejeter_depot(request, depot_id):
         depot.utilisateur,
         f"Votre dépôt de {depot.montant} F"
         f"{f' pour « {depot.tontine.nom} »' if depot.tontine else ''} a été rejeté."
+    )
+    notifier_email(
+        depot.utilisateur,
+        "Depot rejete - E-Tontine Tchad",
+        f"Votre depot de {depot.montant} F a ete rejete.",
     )
     messages.info(request, f"Dépôt de {depot.montant} F rejeté.")
     return redirect('espace_admin')
@@ -404,6 +414,11 @@ def valider_retrait(request, retrait_id):
         f"Votre retrait de {retrait.montant_demande} F"
         f"{f' sur « {retrait.tontine.nom} »' if retrait.tontine else ''} a été validé : "
         f"{retrait.montant_net} F vous seront envoyés."
+    )
+    notifier_email(
+        retrait.utilisateur,
+        "Retrait validé - E-Tontine Tchad",
+        f"Votre retrait de {retrait.montant_demande} F a ete valide. {retrait.montant_net} F vous seront envoyes.",
     )
     messages.success(
         request,
@@ -435,6 +450,11 @@ def rejeter_retrait(request, retrait_id):
         retrait.utilisateur,
         f"Votre retrait de {retrait.montant_demande} F"
         f"{f' sur « {retrait.tontine.nom} »' if retrait.tontine else ''} a été rejeté et remboursé."
+    )
+    notifier_email(
+        retrait.utilisateur,
+        "Retrait rejete - E-Tontine Tchad",
+        f"Votre retrait de {retrait.montant_demande} F a ete rejete et rembourse sur votre solde.",
     )
     messages.info(request, f"Retrait rejeté et {retrait.montant_demande} F remboursés à {retrait.utilisateur}.")
     return redirect('espace_admin')

@@ -355,3 +355,14 @@ def appliquer_interets_toutes():
     ).select_related('tontine', 'utilisateur')
     for adhesion in adhesions:
         appliquer_interets(adhesion)
+
+
+def notifier_email(utilisateur, sujet, message):
+    """Envoie une notification par email à l'utilisateur, si son adresse est valide. Échoue silencieusement en cas de problème d'envoi."""
+    from django.core.mail import send_mail
+    if not utilisateur.email:
+        return
+    try:
+        send_mail(sujet, message, None, [utilisateur.email], fail_silently=True)
+    except Exception:
+        pass
